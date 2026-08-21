@@ -485,7 +485,6 @@
 .page-head__lede {
   font-size: 1rem;
   color: var(--fg-muted);
-  max-width: var(--measure);
 }
 
 .psection {
@@ -500,11 +499,6 @@
 
 .psection > h3 {
   margin: 1.3rem 0 0.5rem;
-}
-
-.psection p,
-.psection ul {
-  max-width: var(--measure);
 }
 
 .plist li {
