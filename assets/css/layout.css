@@ -4,9 +4,19 @@
 
 .wrap {
   width: 100%;
-  max-width: 960px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: 0 1.25rem;
+}
+
+/* 正文行宽单独控制，不跟着容器走。
+   容器宽是给表格 / 图 / 卡片栅格用的；正文一行超过 50 个汉字就开始难读，
+   所以这里钉死一个「字号倍数」的度量，换字号也不会跑偏。 */
+:root { --measure: 46em; }
+
+#about p,
+.entry__body {
+  max-width: var(--measure);
 }
 
 /* ---------- 顶部导航 ---------- */
