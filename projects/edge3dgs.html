@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>端侧 3DGS 训练加速器 · 李安童 Antong Li</title>
+<meta name="description" content="在单芯片上实现 3D Gaussian Splatting 完整训练闭环的端侧加速器：系统架构划分、四个协处理器、上板 bring-up 与 ASIC 面积收敛。">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<meta property="og:image" content="https://bighead-liat.github.io/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+
+<script>
+(function () {
+  var d = document.documentElement;
+  try {
+    var l = localStorage.getItem('liat-site-lang');
+    if (l !== 'zh' && l !== 'en') l = /^zh\b/i.test(navigator.language || '') ? 'zh' : 'en';
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l === 'zh' ? 'zh-CN' : 'en');
+    var t = localStorage.getItem('liat-site-theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    d.setAttribute('data-theme', t);
+  } catch (e) { d.setAttribute('data-theme', 'light'); }
+})();
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main"><span data-lang="zh">跳到主内容</span><span data-lang="en">Skip to content</span></a>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__brand" href="../index.html"><span data-lang="zh">李安童</span><span data-lang="en">Antong Li</span></a>
+    <div class="nav__links">
+      <a href="../index.html#about"><span data-lang="zh">简介</span><span data-lang="en">About</span></a>
+      <a href="../index.html#publications"><span data-lang="zh">论文</span><span data-lang="en">Publications</span></a>
+      <a href="../index.html#projects"><span data-lang="zh">项目</span><span data-lang="en">Projects</span></a>
+      <a href="../index.html#contact"><span data-lang="zh">联系</span><span data-lang="en">Contact</span></a>
+    </div>
+    <div class="nav__tools">
+      <button class="icon-btn" id="lang-toggle" type="button" aria-label="Switch language">EN</button>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme">☾</button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="wrap">
+
+  <p class="crumb">
+    <a href="../index.html#projects"><span data-lang="zh">← 返回项目列表</span><span data-lang="en">← Back to projects</span></a>
+  </p>
+
+  <header class="page-head">
+    <h1><span data-lang="zh">端侧 3DGS 训练加速器</span><span data-lang="en">On-device 3DGS Training Accelerator</span></h1>
+    <div class="page-head__meta">
+      <span>2025.11 – <span data-lang="zh">至今</span><span data-lang="en">present</span></span>
+      <span data-lang="zh">系统架构 / 技术负责人</span><span data-lang="en">System architecture / technical lead</span>
+      <span>AMD Alveo V80 + 28nm</span>
+    </div>
+    <p class="page-head__lede">
+      <span data-lang="zh">在单芯片上实现 3D Gaussian Splatting <strong>完整训练闭环</strong>的端侧加速器，前向渲染、损失、光栅反传、几何反传与参数更新均在硬件上完成。这是团队目前规模最大的项目，本人负责整体系统架构与集成。</span>
+      <span data-lang="en">An on-device accelerator that closes the <strong>full 3D Gaussian Splatting training loop</strong> on a single chip, with forward render, loss, raster backward, geometry backward and parameter update all executed in hardware. It is the largest project on the team, and I am responsible for the overall system architecture and integration.</span>
+    </p>
+    <div class="tag-row">
+      <span class="tag tag--accent" data-lang="zh">多协处理器 SoC</span>
+      <span class="tag tag--accent" data-lang="en">Multi-coprocessor SoC</span>
+      <span class="tag">SpinalHDL</span>
+      <span class="tag">Versal NoC / HBM</span>
+      <span class="tag" data-lang="zh">ASIC 面积收敛</span>
+      <span class="tag" data-lang="en">ASIC area convergence</span>
+    </div>
+  </header>
+
+  <!-- ---------- 我的边界 ---------- -->
+  <section class="psection" style="border-top:0;padding-top:0">
+    <div class="scope">
+      <h3><span data-lang="zh">我的边界</span><span data-lang="en">Scope of my contribution</span></h3>
+      <dl>
+        <dt><span data-lang="zh">独立完成</span><span data-lang="en">Solely mine</span></dt>
+        <dd>
+          <span data-lang="zh">四个协处理器的 RTL：排序、Adam 优化器、Sobel 损失、硬件分箱；还有 C++ 主机训练器与运行时。</span>
+          <span data-lang="en">RTL for four coprocessors (sort, Adam optimizer, Sobel loss, hardware binning), plus the C++ host trainer and runtime.</span>
+        </dd>
+
+        <dt><span data-lang="zh">主导</span><span data-lang="en">Owned</span></dt>
+        <dd>
+          <span data-lang="zh">整体系统架构与集成、FPGA 上板 bring-up、Host-less 化、ASIC 面积收敛策略、硅上问题定位。</span>
+          <span data-lang="en">Overall system architecture and integration, FPGA bring-up, moving the system host-less, ASIC area convergence strategy and silicon debug.</span>
+        </dd>
+
+        <dt class="is-out"><span data-lang="zh">不是我写的</span><span data-lang="en">Not mine</span></dt>
+        <dd>
+          <span data-lang="zh"><strong>渲染引擎主体由团队另一名成员完成。</strong>我在其中做的是上板缺陷定位与面积报告纠错，不是渲染阵列的微架构设计。</span>
+          <span data-lang="en"><strong>The render engine itself was written by another team member.</strong> I debugged its board-level failures and corrected its area report. I did not design the rendering array's microarchitecture.</span>
+        </dd>
+
+        <dt class="is-out"><span data-lang="zh">关于 2.69× 加速比</span><span data-lang="en">On the 2.69× speedup figure</span></dt>
+        <dd>
+          <span data-lang="zh">排序协处理器相对 host 单线程 <code>std::sort</code> 加速 2.69×，但排序在单次训练迭代中仅占 <strong>0.62%</strong>，渲染引擎占 95.9%，因此<strong>端到端收益接近于零</strong>。该工作的价值在于<strong>面积</strong>（4.57×）与解除容量上限，而非提升速度；以加速比描述这项工作会产生误导。</span>
+          <span data-lang="en">The sort coprocessor is 2.69× faster than the host's single-threaded <code>std::sort</code>. Sorting, however, accounts for only <strong>0.62%</strong> of a training iteration against 95.9% for the render engine, so the <strong>end-to-end gain is close to zero</strong>. The value of this work lies in <strong>area</strong> (4.57×) and in removing a capacity ceiling, not in speed; presenting it as a speedup would be misleading.</span>
+        </dd>
+      </dl>
+    </div>
+
+    <div class="note">
+      <strong><span data-lang="zh">关于具体数值。</span><span data-lang="en">On specific numbers.</span></strong>
+      <span data-lang="zh">本项目为<strong>公司在研内容</strong>，绝对面积、功耗与 FPGA 资源占用不在公开页面披露。本页保留的是设计方法、判断依据、调试过程、本人分工，以及不含绝对量纲的比值，均不涉及未公开的产品指标。相关细节可在合规范围内于面试中展开。</span>
+      <span data-lang="en">This project is <strong>ongoing work at my employer</strong>. Absolute area, power and FPGA resource counts are therefore not disclosed here. What remains is the design method, the reasoning, the debugging process, the scope of my own contribution, and ratios carrying no absolute magnitude, none of which touch unreleased product figures. Further detail can be discussed in an interview within permissible limits.</span>
+    </div>
+  </section>
+
+  <!-- ---------- 系统架构 ---------- -->
+  <section class="psection" id="arch">
+    <h2><span data-lang="zh">系统架构与划分</span><span data-lang="en">System architecture</span></h2>
+
+    <p>
+      <span data-lang="zh">训练流水拆成 <strong>7 个功能块</strong>：渲染引擎、排序、投影、硬件分箱、几何反传、Adam、损失。每块<strong>独占一路 HBM 伪通道，并运行在各自的时钟域</strong>，经 Versal NoC 互联。让每块跑自己的频率，是为了不让最慢的那个块把整条流水拖到同一个档上。</span>
+      <span data-lang="en">The training pipeline is split into <strong>seven functional blocks</strong>: render engine, sort, projection, hardware binning, geometry backward, Adam and loss. Each block <strong>owns one HBM pseudo-channel and runs in its own clock domain</strong>, interconnected through the Versal NoC. Giving each block its own frequency keeps the slowest one from dragging the whole pipeline down to a single rate.</span>
+    </p>
+
+    <p>
+      <span data-lang="zh"><strong>块间不设直连</strong>，一律通过 host 中介式契约通信。该方案引入了一层调度开销，但使每个块可以独立迭代与独立上板；在七个块并行开发的条件下，这一收益高于所节省的周期数。控制面经 PCIe 汇聚至各块的 AXI-Lite；该版本的数据面仍需经主机中转，跨阶段数据在 HBM 与主机之间往返。</span>
+      <span data-lang="en"><strong>Blocks are never directly connected.</strong> All communication passes through a host-mediated contract. This costs a layer of scheduling overhead but allows every block to be iterated and brought up on hardware independently; with seven blocks under parallel development, that benefit outweighs the cycles it costs. The control plane funnels through PCIe to each block's AXI-Lite; in this revision the data plane still passes through the host, with cross-stage data shuttling between HBM and the host.</span>
+    </p>
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<figure class="figure-wide">
+      <img src="../assets/img/projects/edge3dgs/pipeline.png" width="1600" height="900" loading="lazy"
+           data-lightbox alt="Six-stage training pipeline">
+      <figcaption>
+        <span data-lang="zh">六阶段训练流水：预处理 → 渲染 → 损失 → 光栅反传 → 几何反传 → Adam。</span>
+        <span data-lang="en">Six-stage training pipeline: preprocess → render → loss → raster backward → geometry backward → Adam.</span>
+      </figcaption>
+    </figure>
+-->
+  </section>
+
+  <!-- ---------- 训练闭环 ---------- -->
+  <section class="psection" id="loop">
+    <h3><span data-lang="zh">继而将主机层一并迁至片上</span><span data-lang="en">Then moving the host layer on-chip</span></h3>
+    <p>
+      <span data-lang="zh">host 中介的开销终须偿还。主机职责现已迁往<strong>片上 Cortex-A72</strong>，ARM 裸机可独立驱动六个协处理器中的五个，其输出与经主机路径的结果<strong>逐字节一致</strong>。此处以逐字节一致而非「可运行」作为验收判据：迁移改变的是控制主体，任何数值偏差都意味着迁移并未真正完成。</span>
+      <span data-lang="en">The overhead of host mediation eventually has to be repaid. Host duties now reside on an <strong>on-chip Cortex-A72</strong>, where bare-metal ARM drives five of the six coprocessors unaided and produces output <strong>byte-identical</strong> to the host-mediated path. Byte-identity rather than "it runs" is the acceptance criterion here: the migration changes which agent is in control, and any numerical divergence would mean it had not actually completed.</span>
+    </p>
+    <p>
+      <span data-lang="zh">数据面随之迁移后，两处等待各下降约一个数量级：<strong>引擎回读由 59.2 降至 0.2 ms/iter</strong>，<strong>分箱等待由 74.9 降至 2.5 ms/iter</strong>。二者原本均非计算耗时，而是数据在等待 PCIe <span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span>。</span>
+      <span data-lang="en">With the data plane moved as well, two waits each fell by roughly an order of magnitude: <strong>engine readback from 59.2 to 0.2 ms/iter</strong> and <strong>binning wait from 74.9 to 2.5 ms/iter</strong>. Neither was ever compute time; both were data waiting on PCIe <span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span>.</span>
+    </p>
+
+    <h2><span data-lang="zh">训练闭环的实现</span><span data-lang="en">Closing the training loop</span></h2>
+
+    <p>
+      <span data-lang="zh">从零构建六阶段流水，并实现 C++ 主机训练器与 QDMA / CSR 运行时，支持仿真与上板双后端切换。验证采用<strong>逐算子 A/B 对拍</strong>，准入门槛设为梯度余弦相似度 &gt; 0.99。训练场景与推理不同：单个算子的微小偏差会在迭代中累积放大，若等到 PSNR 层面才被发现则为时已晚。</span>
+      <span data-lang="en">The six-stage pipeline was built from scratch, together with a C++ host trainer and a QDMA / CSR runtime supporting both simulation and hardware backends. Verification used <strong>per-operator A/B comparison</strong> with an admission threshold of gradient cosine similarity &gt; 0.99. Training differs from inference in this respect: a small per-operator deviation compounds across iterations, and detecting it only at the PSNR level is far too late.</span>
+    </p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th><span data-lang="zh">项</span><span data-lang="en">Item</span></th>
+            <th><span data-lang="zh">结果</span><span data-lang="en">Result</span></th>
+            <th><span data-lang="zh">口径</span><span data-lang="en">Provenance</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-lang="zh">DL3DV 300 iter 训练</span><span data-lang="en">DL3DV, 300 iterations</span></td>
+            <td class="n"><strong>PSNR 29.05 dB</strong> <span class="muted">vs RTX 4090 CUDA 29.03 dB</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">排序结果一致性</span><span data-lang="en">Sort correctness</span></td>
+            <td class="n"><span data-lang="zh">真实场景全 tile byte-exact</span><span data-lang="en">byte-exact across all tiles of a real scene</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">Adam 核对拍</span><span data-lang="en">Adam core</span></td>
+            <td class="n"><span data-lang="zh">83 用例逐位一致</span><span data-lang="en">83 cases bit-identical to host golden</span></td>
+            <td><span class="badge badge--sim"><span data-lang="zh">仿真</span><span data-lang="en">simulation</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">Sobel 损失</span><span data-lang="en">Sobel loss</span></td>
+            <td class="n"><span data-lang="zh">6 类激励 256/256 全 bit-exact</span><span data-lang="en">256/256 bit-exact across 6 stimulus classes</span></td>
+            <td><span class="badge badge--sim"><span data-lang="zh">仿真</span><span data-lang="en">simulation</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 视频待补：暂无可公开的演示片源。
+         有片源后把下面这段取消注释，并按 MEDIA.md 的 ffmpeg 命令压制、生成 poster。
+    <figure class="media-block">
+      <video controls preload="none" width="1600" height="900"
+             poster="../assets/video/edge3dgs/train-loop.poster.jpg">
+        <source src="../assets/video/edge3dgs/train-loop.mp4" type="video/mp4">
+      </video>
+      <figcaption>
+        <span data-lang="zh">端上训练闭环在 Alveo V80 上运行。</span>
+        <span data-lang="en">The on-device training loop running on Alveo V80.</span>
+      </figcaption>
+    </figure>
+    -->
+  </section>
+
+  <!-- ---------- ASIC 面积策略 ---------- -->
+  <section class="psection" id="area">
+    <h2><span data-lang="zh">ASIC 面积策略：以速度换面积</span><span data-lang="en">ASIC area strategy: trading speed for area</span></h2>
+
+    <p>
+      <span data-lang="zh">整片面积由 SRAM 主导，占比在六成以上，因此优化重心应在存储而非逻辑：逻辑部分即便充分优化，可动用的也只是不足四成的份额。以下三条主线均由这一判断导出：</span>
+      <span data-lang="en">SRAM dominates total area at over sixty percent, so optimization belongs in memory rather than in logic: however thoroughly the logic is optimized, it addresses only the smaller share. Three lines of attack follow from that assessment:</span>
+    </p>
+
+    <ul class="plist">
+      <li>
+        <span data-lang="zh"><strong>有界化与溢出路径。</strong>片上缓冲按典型负载而非最坏情况定容，超出部分经 DRAM spill 处理，实质上是以访存往返换取片上容量。最坏情况出现频率很低，但为其常备的存储始终占用面积。</span>
+        <span data-lang="en"><strong>Bounded buffers with a spill path.</strong> On-chip buffers are sized for the typical load rather than the worst case, with overflow spilled to DRAM, trading memory round-trips for on-chip capacity. The worst case occurs rarely, yet the storage reserved for it occupies area continuously.</span>
+      </li>
+      <li>
+        <span data-lang="zh"><strong>时分复用折叠。</strong>前向与反向互为伴随，可以共享同一组 mode-switched MAC 阵列。综合数据显示折叠后<strong>面积减少约 65%</strong>，代价是周期数增加。</span>
+        <span data-lang="en"><strong>Time-multiplex folding.</strong> Forward and backward passes are adjoint to each other and can share one mode-switched MAC array. Synthesis shows folding <strong>saves about 65% of the area</strong>, at the cost of extra cycles.</span>
+      </li>
+      <li>
+        <span data-lang="zh"><strong>按实际速率 right-size。</strong>归并 FIFO 的深度按 K 路 reader 各自 1/K 的消费速率确定，而非按最坏情况。依据可能发生的情形定深度与依据实际发生的情形定深度，二者可相差数倍。</span>
+        <span data-lang="en"><strong>Right-size to the actual rate.</strong> Merge FIFO depth follows the 1/K consumption rate of each of K readers rather than the worst case. Sizing for what could occur, as against what does occur, can differ by a factor of several.</span>
+      </li>
+    </ul>
+
+    <p>
+      <span data-lang="zh">此外还做了两件小而有效的事：审计访问互斥性后把双端口 SRAM 改为单端口（以 6T 替 8T）；数值单元用 ROM 查表配合 Newton 迭代替代除法与开方 IP，以迭代延迟换取面积与 DSP。</span>
+      <span data-lang="en">Two smaller but effective changes: after auditing access mutual-exclusion, dual-port SRAMs became single-port (6T instead of 8T); and division and square-root IP were replaced by ROM lookup plus Newton iteration, trading iteration latency for area and DSPs.</span>
+    </p>
+
+    <h3><span data-lang="zh">落地：排序协处理器</span><span data-lang="en">In practice: the sort coprocessor</span></h3>
+    <p>
+      <span data-lang="zh">上述三条方法均应用于排序协处理器。该协处理器实现逐 tile 精确排序（有界基数排序 + DRAM spill + 8 路流式归并），在<strong>算法未作任何修改</strong>的前提下将片上 SRAM 面积降低 <strong>4.57×</strong>。该面积并非估算值，而是按大宏的 MMC 实测数据逐个核算得出 <span class="badge badge--synth"><span data-lang="zh">综合 + MMC 实测</span><span data-lang="en">synthesis + measured MMC</span></span>。逻辑部分在部署频率下 WNS = 0 <span class="badge badge--synth">DC</span>，FPGA 侧<strong>不占用任何 DSP</strong> <span class="badge badge--synth">Vivado</span>。</span>
+      <span data-lang="en">All three methods are applied in the sort coprocessor, which performs exact per-tile sorting via bounded radix sort, DRAM spill and 8-way streaming merge. On-chip SRAM area was reduced by <strong>4.57×</strong> <strong>without any modification to the algorithm</strong>. That area is not an estimate: it was accounted macro by macro from measured MMC data <span class="badge badge--synth">synthesis + measured MMC</span>. The logic closes at WNS = 0 at the deployed frequency <span class="badge badge--synth">DC</span>, and on the FPGA side it uses <strong>no DSPs at all</strong> <span class="badge badge--synth">Vivado</span>.</span>
+    </p>
+
+    <p style="margin-top:.9rem">
+      <span data-lang="zh">附带的收益是：新方案在真实场景负载下达到 byte-exact，而该负载<strong>已超出旧方案的容量上限</strong>。超出上限后旧方案并不会变慢，而是<strong>静默产生错误的排序结果</strong>，且不触发任何报错。</span>
+      <span data-lang="en">A further benefit: the new design is byte-exact on a real scene's workload, and that load <strong>already exceeds the capacity ceiling of the old design</strong>. Beyond that ceiling the old design does not slow down but <strong>silently produces an incorrect ordering</strong>, without raising any error.</span>
+    </p>
+
+    <h3><span data-lang="zh">落地：几何反传单元与投影单元</span><span data-lang="en">In practice: the geometry backward and projection units</span></h3>
+    <p>
+      <span data-lang="zh">几何反传单元采用时分复用：将发起间隔放宽 <strong>4×</strong>，浮点资源池随之收缩至约四分之一，单元面积下降 <strong>47.3%</strong> <span class="badge badge--synth">DC</span>。这是明码标价的以速度换面积——发起间隔确实变差，但该级本非流水瓶颈，代价落在了有余量的地方。</span>
+      <span data-lang="en">The geometry backward unit uses time multiplexing: relaxing the initiation interval by <strong>4×</strong> shrinks the floating-point pool to roughly a quarter and reduces unit area by <strong>47.3%</strong> <span class="badge badge--synth">DC</span>. This is speed traded for area at a stated price. The initiation interval genuinely worsens, but this stage was never the pipeline bottleneck, so the cost lands where margin exists.</span>
+    </p>
+    <p>
+      <span data-lang="zh">投影单元的节省来自改写而非折叠：将协方差计算按结合律重排后消去了 21 个浮点乘法器，单元面积下降 <strong>43.2%</strong> <span class="badge badge--synth">DC</span>；同时数值行为亦有改善，受误差影响半径的样本比例由 <strong>5.18% 降至 1.76%</strong>。改变结合顺序同时降低面积并提升精度的情形并不常见，值得单独记录。</span>
+      <span data-lang="en">The projection unit saves by rewriting rather than folding: reassociating the covariance computation removes 21 floating-point multipliers and reduces unit area by <strong>43.2%</strong> <span class="badge badge--synth">DC</span>, while also improving the numerics — the proportion of samples whose radius is affected by error falls from <strong>5.18% to 1.76%</strong>. A change of association order that lowers area and raises accuracy at once is uncommon enough to record separately.</span>
+    </p>
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<figure class="figure-wide">
+      <img src="../assets/img/projects/edge3dgs/area-compare.png" width="1200" height="900" loading="lazy"
+           data-lightbox alt="SRAM area comparison">
+      <figcaption>
+        <span data-lang="zh">排序协处理器片上 SRAM 面积对比。</span>
+        <span data-lang="en">On-chip SRAM area of the sort coprocessor, before and after.</span>
+      </figcaption>
+    </figure>
+-->
+  </section>
+
+  <!-- ---------- 硅上问题定位 ---------- -->
+  <section class="psection" id="debug">
+    <h2><span data-lang="zh">硅上问题定位</span><span data-lang="en">Silicon debug</span></h2>
+
+    <h3><span data-lang="zh">一处位宽解掉长期死锁</span><span data-lang="en">One bit-width fix resolved a long-standing deadlock</span></h3>
+    <p>
+      <span data-lang="zh">一处硅上死锁长期存在，此前四轮 RTL 层面的修改均未奏效。当时的结论是 NoC 对协处理器读流存在硬性 beat 数限制。该结论在两个层面上都是错误的。其一，若干次所谓的复现实际读到的是<strong>陈旧数据</strong>：读通道卡死后软复位无法恢复，调试寄存器仍保留着上一次的快照，因此连续三次读取得到的是同一份记录。其二，在编写合成负载跳过前处理之后，单路连续读取上万 beats 未出现任何异常。</span>
+      <span data-lang="en">A silicon deadlock persisted through four rounds of RTL changes. The prevailing explanation was that the NoC imposed a hard beat-count limit on coprocessor read streams. That explanation was wrong at two levels. First, several of the apparent reproductions were in fact reading <strong>stale data</strong>: once the read channel wedged, a soft reset could not recover it and the debug registers retained the previous snapshot, so three consecutive reads returned the same record. Second, once a synthetic harness was written to bypass preprocessing, a single lane read tens of thousands of beats without incident.</span>
+    </p>
+    <p>
+      <span data-lang="zh">真实原因是一个手写 wrapper 将 AXI ID 由 <code>[6:0]</code> 截断为 <code>[3:0]</code>，而归并单元的 run 编号<strong>恰好位于被截去的 bit[6:4]</strong>。其结果是多路 reader 共享同一 ID，仲裁器无法按 ID 路由；叠加 AXI 中同 ID 响应必须按序返回的规则，被阻塞的 reader 永久持有 outstanding 读请求，耗尽共享读资源并导致其余 lane 饥饿。</span>
+      <span data-lang="en">The actual cause was that a hand-written wrapper truncated the AXI ID from <code>[6:0]</code> to <code>[3:0]</code>, and the run number of the merge unit <strong>fell precisely in the discarded bits [6:4]</strong>. Multiple readers therefore shared a single ID and the arbiter could not route by it. Combined with the AXI rule that responses on the same ID must return in order, the blocked reader held its outstanding reads indefinitely, exhausted the shared read resources and starved the remaining lanes.</span>
+    </p>
+    <p>
+      <span data-lang="zh"><strong>将该字段位宽由 4 扩展至 7 后，死锁与读资源饥饿同时消除。</strong>此前四轮修改之所以全部失败，是因为缺陷位于 wrapper 的端口声明中，任何 RTL 内部的改动都无法触及。</span>
+      <span data-lang="en"><strong>Widening this field from 4 to 7 bits eliminated both the deadlock and the starvation.</strong> The four earlier attempts all failed because the defect resided in a wrapper's port declaration, which no change inside the RTL could reach.</span>
+    </p>
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<figure class="figure-wide">
+      <img src="../assets/img/projects/edge3dgs/axi-id-deadlock.png" width="1200" height="900" loading="lazy"
+           data-lightbox alt="AXI ID truncation deadlock">
+      <figcaption>
+        <span data-lang="zh">AXI ID 截断如何导致仲裁失效与死锁。</span>
+        <span data-lang="en">How the AXI ID truncation broke arbitration and led to deadlock.</span>
+      </figcaption>
+    </figure>
+-->
+
+    <h3><span data-lang="zh">面积报告里的黑盒</span><span data-lang="en">Black boxes in an area report</span></h3>
+    <p>
+      <span data-lang="zh">另查出渲染引擎的 ASIC 面积报告将<strong>数百个浮点 IP 综合为黑盒</strong>，完全未予计入。修正后 <strong>DSP 少算 4.35×、LUT 少算 1.66×</strong>。重建网表之后方才得到可信的面积基线。此类问题不触发任何报错，只是给出一个偏乐观且形式上完全正常的数字，而整个面积收敛计划正建立在该数字之上。</span>
+      <span data-lang="en">Separately, the ASIC area report for the render engine proved to have synthesized <strong>several hundred floating-point IP instances as black boxes</strong>, leaving them entirely uncounted. Once corrected, <strong>DSPs had been undercounted by 4.35× and LUTs by 1.66×</strong>. Rebuilding the netlist was necessary to obtain a trustworthy area baseline. This class of failure raises no error; it yields an optimistic figure that appears entirely normal, and the whole area-convergence plan rested upon it.</span>
+    </p>
+  </section>
+
+  <!-- ---------- 协处理器 ---------- -->
+  <section class="psection" id="coproc">
+    <h2><span data-lang="zh">协处理器设计</span><span data-lang="en">Coprocessor design</span></h2>
+
+    <h3><span data-lang="zh">Adam 优化器：把带宽问题识别成带宽问题</span><span data-lang="en">Adam optimizer: recognizing a bandwidth problem as one</span></h3>
+    <p>
+      <span data-lang="zh">这一阶段的瓶颈在带宽而非算力。每个高斯包含数十个参数，每次迭代需经 QDMA 往返数百 MB 数据，而实际算术运算仅为若干次 FMA。将其移至片上的目的不是提高运算速度，而是避免数据搬运。</span>
+      <span data-lang="en">This stage is limited by bandwidth rather than arithmetic. With a few dozen parameters per Gaussian, each iteration moves hundreds of megabytes across QDMA against only a handful of FMAs of actual computation. The purpose of moving it on-chip is not faster computation but the elimination of data movement.</span>
+    </p>
+    <p>
+      <span data-lang="zh">因此采用<strong>分块缓冲而非逐元素交错</strong>。逐元素交错会将一条顺序流拆成四条 strided 流，使 AXI burst 既短且乱序。此外由主机预先传入倒数，将两次除法转换为乘法。最终实现 <strong>II = 1</strong> 的满吞吐流水，<strong>消除 89% 的数据流量</strong>，且该单元的资源占用可以忽略。</span>
+      <span data-lang="en">It therefore uses <strong>chunked buffering rather than element-wise interleaving</strong>. Interleaving would turn one sequential stream into four strided ones, rendering AXI bursts both short and out of order. The host additionally pre-computes reciprocals, converting two divisions into multiplications. The result is a full-throughput pipeline at <strong>II = 1</strong> that <strong>eliminates 89% of the traffic</strong>, at negligible resource cost.</span>
+    </p>
+
+    <h3><span data-lang="zh">Sobel 损失：把梯度通路压到两次浮点运算</span><span data-lang="en">Sobel loss: down to two floating-point operations</span></h3>
+    <p>
+      <span data-lang="zh">利用两条性质将梯度通路压缩至<strong>仅需 1 次 FP 减法与 1 次 FP 乘法</strong>。其一，卷积具有线性性，<code>Sobel(pred) − Sobel(gt) = Sobel(pred − gt)</code>，故第一级只需计算一次卷积。其二，中间结果只取符号位，第二级的输入取值仅为 {−1, 0, +1}，而核系数为 ±1/±2，<strong>整个第二级退化为纯整数运算，无需任何乘法器</strong>。</span>
+      <span data-lang="en">Two properties reduce the gradient path to <strong>one FP subtraction and one FP multiplication</strong>. First, convolution is linear, so <code>Sobel(pred) − Sobel(gt) = Sobel(pred − gt)</code> and the first stage requires only one convolution. Second, only the sign of the intermediate result is required, so the second stage sees inputs in {−1, 0, +1} against kernels of ±1/±2, and <strong>the entire second stage reduces to integer arithmetic requiring no multipliers</strong>.</span>
+    </p>
+
+    <h3><span data-lang="zh">用冲激响应定位流水错位</span><span data-lang="en">Impulse-response probing for pipeline misalignment</span></h3>
+    <p>
+      <span data-lang="zh">Sobel 模块初期始终无法对齐，遍历全部全局 shift 后最优结果仅为 26/256 匹配。后续分析表明，<strong>三处缺陷均为数据通路内部的错位，无法由任何输出 shift 表达</strong>。也就是说，shift 扫描一直在搜索一个并不存在的峰值。</span>
+      <span data-lang="en">The Sobel block initially failed to match under any configuration; sweeping every global shift produced a best result of 26/256. Subsequent analysis showed that <strong>all three defects were misalignments internal to the datapath, which no output shift can express</strong>. The shift sweep had therefore been searching for a peak that did not exist.</span>
+    </p>
+    <p>
+      <span data-lang="zh">改用冲激激励后，硬件上的 10 个非零样本可由单一缺陷<strong>精确预测</strong>，既无残留也无遗漏，三处错位随之逐一定位。主缺陷是 <code>a + 2b + c</code> 被实现为两级串联加法，内层结果较 <code>c</code> 晚若干拍到达外层，致使每个列和的第三个 tap 取到了滞后若干列的像素。修正后在 6 类激励下达到 <strong>256/256 全部 bit-exact</strong>。</span>
+      <span data-lang="en">Under impulse excitation, the 10 non-zero samples observed in hardware were <strong>predicted exactly</strong> by a single defect, with no residual and no omission, and the three misalignments were then localized in turn. The principal defect was that <code>a + 2b + c</code> had been implemented as two cascaded additions, so the inner result reached the outer stage several cycles after <code>c</code>, causing the third tap of each column sum to read pixels several columns late. After correction, the block is <strong>256/256 bit-exact across all six stimulus classes</strong>.</span>
+    </p>
+    <p>
+      <span data-lang="zh">两条可推广的结论：其一，<strong>在不等深的加法树中，较浅的通路必须补齐延迟</strong>；其二，<strong>平坦或常数激励会给出虚假的通过结果</strong>，因为在所有 tap 相等时，tap 错位不可观测。</span>
+      <span data-lang="en">Two generalizable conclusions follow. First, <strong>in an unbalanced adder tree the shallower path must be delay-matched</strong>. Second, <strong>flat or constant stimuli yield spurious passes</strong>, since tap misalignment is unobservable when every tap is equal.</span>
+    </p>
+  </section>
+
+  <nav class="pnav">
+    <a href="../index.html#projects"><span data-lang="zh">← 全部项目</span><span data-lang="en">← All projects</span></a>
+    <a href="ff-hw.html"><span data-lang="zh">推理侧的对应工作：FF_HW →</span><span data-lang="en">The inference-side counterpart: FF_HW →</span></a>
+  </nav>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> <span data-lang="zh">李安童 Antong Li</span><span data-lang="en">Antong Li</span></span>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js" defer></script>
+<script src="../assets/js/lightbox.js" defer></script>
+</body>
+</html>

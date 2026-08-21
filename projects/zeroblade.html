@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZeroBlade — HiSparse 层级稀疏 MLP 加速器 · 李安童 Antong Li</title>
+<meta name="description" content="ZeroBlade：ZeroTetris 的下一代设计，提出 HiSparse 层级稀疏框架。完成算法实验、RTL 实现、HAPS-80 原型验证与 28nm 综合全流程，发表于 IEEE ISCAS 2026。">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<meta property="og:image" content="https://bighead-liat.github.io/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+
+<script>
+(function () {
+  var d = document.documentElement;
+  try {
+    var l = localStorage.getItem('liat-site-lang');
+    if (l !== 'zh' && l !== 'en') l = /^zh\b/i.test(navigator.language || '') ? 'zh' : 'en';
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l === 'zh' ? 'zh-CN' : 'en');
+    var t = localStorage.getItem('liat-site-theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    d.setAttribute('data-theme', t);
+  } catch (e) { d.setAttribute('data-theme', 'light'); }
+})();
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main"><span data-lang="zh">跳到主内容</span><span data-lang="en">Skip to content</span></a>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__brand" href="../index.html"><span data-lang="zh">李安童</span><span data-lang="en">Antong Li</span></a>
+    <div class="nav__links">
+      <a href="../index.html#about"><span data-lang="zh">简介</span><span data-lang="en">About</span></a>
+      <a href="../index.html#publications"><span data-lang="zh">论文</span><span data-lang="en">Publications</span></a>
+      <a href="../index.html#projects"><span data-lang="zh">项目</span><span data-lang="en">Projects</span></a>
+      <a href="../index.html#contact"><span data-lang="zh">联系</span><span data-lang="en">Contact</span></a>
+    </div>
+    <div class="nav__tools">
+      <button class="icon-btn" id="lang-toggle" type="button" aria-label="Switch language">EN</button>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme">☾</button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="wrap">
+
+  <p class="crumb">
+    <a href="../index.html#projects"><span data-lang="zh">← 返回项目列表</span><span data-lang="en">← Back to projects</span></a>
+  </p>
+
+  <header class="page-head">
+    <h1>ZeroBlade</h1>
+    <div class="page-head__meta">
+      <span>2024.06 – 2025.11</span>
+      <span data-lang="zh">第一作者 / 独立负责</span><span data-lang="en">First author / sole owner</span>
+      <span>Synopsys HAPS-80 + 28nm</span>
+      <span>IEEE ISCAS 2026</span>
+    </div>
+    <p class="page-head__lede">
+      <span data-lang="zh">ZeroTetris 的下一代设计，提出 <strong>HiSparse 层级稀疏框架</strong>，将原先严格的全零跳过推广为可配置的粗粒度行跳过与细粒度阈值截断双模式，使精度与吞吐成为可调参数。算法实验、RTL 实现、HAPS-80 原型验证与 28nm 综合全流程均由本人独立完成。</span>
+      <span data-lang="en">The successor to ZeroTetris, introducing the <strong>HiSparse hierarchical sparsity framework</strong>, which generalizes strict all-zero skipping into two configurable modes: coarse-grained row skipping and fine-grained threshold truncation, rendering accuracy and throughput tunable. The algorithm study, RTL implementation, HAPS-80 prototyping and the full 28nm synthesis flow were carried out independently by me.</span>
+    </p>
+    <div class="tag-row">
+      <span class="tag tag--accent">IEEE ISCAS 2026 · CCF-B</span>
+      <span class="tag">SpinalHDL · 9K LOC</span>
+      <span class="tag">HAPS-80</span>
+      <span class="tag">Synopsys DC 28nm</span>
+    </div>
+  </header>
+
+  <section class="psection" style="border-top:0;padding-top:0">
+    <div class="scope">
+      <h3><span data-lang="zh">我的边界</span><span data-lang="en">Scope of my contribution</span></h3>
+      <dl>
+        <dt><span data-lang="zh">独立完成</span><span data-lang="en">Solely mine</span></dt>
+        <dd>
+          <span data-lang="zh">算法侧稀疏度标定、全部 RTL、HAPS-80 原型验证、28nm 综合全流程。论文第一作者。</span>
+          <span data-lang="en">Sparsity calibration on the algorithm side, all RTL, HAPS-80 prototyping and the full 28nm synthesis flow. First author on the paper.</span>
+        </dd>
+        <dt class="is-out"><span data-lang="zh">未做的部分</span><span data-lang="en">What was not done</span></dt>
+        <dd>
+          <span data-lang="zh">本设计止于 <strong>post-synthesis</strong>，<strong>没有流片</strong>。下面的面积与功耗数字来自综合报告，不是硅上实测。</span>
+          <span data-lang="en">This design stops at <strong>post-synthesis</strong> and <strong>was not taped out</strong>. The area and power figures below come from synthesis reports, not from silicon.</span>
+        </dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="psection" id="results">
+    <h2><span data-lang="zh">关键结果</span><span data-lang="en">Key results</span></h2>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th><span data-lang="zh">指标</span><span data-lang="en">Metric</span></th>
+            <th><span data-lang="zh">数值</span><span data-lang="en">Value</span></th>
+            <th><span data-lang="zh">口径</span><span data-lang="en">Provenance</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-lang="zh">峰值算力</span><span data-lang="en">Peak throughput</span></td>
+            <td class="n">1024 MAC/cycle <span class="muted">(16×16 × 4 <span data-lang="zh">组外积 PE 阵列</span><span data-lang="en">outer-product PE groups</span>)</span></td>
+            <td><span class="badge badge--synth"><span data-lang="zh">设计指标</span><span data-lang="en">by design</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">HAPS-80 原型</span><span data-lang="en">HAPS-80 prototype</span></td>
+            <td class="n">200 MHz, PSNR <strong>29.91 dB</strong> <span class="muted">(skip = 2, α = 30%)</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">原型实测</span><span data-lang="en">prototype</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">28nm 面积</span><span data-lang="en">28nm area</span></td>
+            <td class="n">1.284 mm²</td>
+            <td><span class="badge badge--synth">DC post-synth</span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">功耗</span><span data-lang="en">Power</span></td>
+            <td class="n">102.8 mW @ 200 MHz</td>
+            <td><span class="badge badge--synth">DC post-synth</span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">能效</span><span data-lang="en">Efficiency</span></td>
+            <td class="n"><strong>24.55 TOPS/W</strong></td>
+            <td><span class="badge badge--synth">DC post-synth</span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">HiSparse 峰值加速</span><span data-lang="en">HiSparse peak speedup</span></td>
+            <td class="n">3.4×</td>
+            <td><span class="badge badge--synth"><span data-lang="zh">综合 + 仿真</span><span data-lang="en">synthesis + simulation</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:.9rem">
+      <span data-lang="zh">能效优于 EIE、SIGMA、NeuRex-Edge、MetaVRain 等同代稀疏加速器。</span>
+      <span data-lang="en">Efficiency compares favourably against contemporaneous sparse accelerators including EIE, SIGMA, NeuRex-Edge and MetaVRain.</span>
+    </p>
+
+    <figure class="figure-wide">
+      <img src="../assets/img/projects/zeroblade/efficiency-compare.png" width="2920" height="730" loading="lazy"
+           data-lightbox alt="Performance comparison with related 28nm designs">
+      <figcaption>
+        <span data-lang="zh">与同代 28nm 稀疏加速器的对比（ISCAS 2026 表 I）。全部为 Design Compiler 综合后数据，未做 place-and-route <span class="badge badge--synth">DC post-synth</span></span>
+        <span data-lang="en">Comparison against contemporaneous 28nm sparse accelerators (Table I, ISCAS 2026). All numbers are post-synthesis from Design Compiler, without place-and-route <span class="badge badge--synth">DC post-synth</span></span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="psection" id="algo">
+    <h2><span data-lang="zh">算法侧稀疏度标定</span><span data-lang="en">Calibrating sparsity on the algorithm side</span></h2>
+    <p>
+      <span data-lang="zh">硬件阈值的取值需由实验确定。基于 tiny-cuda-nn 与 NeRFAcc 搭建实验框架，在 <strong>6 个 NeRF 场景 × 6 档 block_size × 200 个视角</strong>上扫描 PSNR / SSIM / 稀疏率，据此确定芯片端阈值。论文中的稀疏率-精度曲线即来自这组数据。</span>
+      <span data-lang="en">The on-chip threshold has to be determined experimentally. I built an experimental framework on tiny-cuda-nn and NeRFAcc, sweeping PSNR / SSIM / sparsity across <strong>6 NeRF scenes × 6 block sizes × 200 viewpoints</strong> in order to fix the threshold used in hardware. That sweep is the source of the sparsity–accuracy curve reported in the paper.</span>
+    </p>
+
+    <figure class="figure-wide">
+      <img src="../assets/img/projects/zeroblade/sparsity-psnr.png" width="1400" height="769" loading="lazy"
+           data-lightbox alt="Sparsity vs accuracy">
+      <figcaption>
+        <span data-lang="zh">稀疏率-精度曲线（6 场景 × 6 档 block_size）。</span>
+        <span data-lang="en">Sparsity–accuracy curve across 6 scenes and 6 block sizes.</span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="psection" id="rtl">
+    <h2><span data-lang="zh">RTL 与原型验证</span><span data-lang="en">RTL and prototyping</span></h2>
+    <p>
+      <span data-lang="zh">以 SpinalHDL 实现约 <strong>9000 行 RTL</strong>：外积 PE 阵列为 16×16 MAC × 4 组，峰值 <strong>1024 MAC/cycle</strong>；阈值化激活单元采用 16 bit SInt、Q8.8 定点，支持 per-layer 独立配置。为支持可配置阈值，配置指令总线由 22 bit 扩展至 38 bit。可配置性存在代价，此处体现为指令带宽的增加。</span>
+      <span data-lang="en">Approximately <strong>9,000 lines of RTL</strong> in SpinalHDL: an outer-product PE array of 16×16 MACs × 4 groups giving a peak of <strong>1024 MAC/cycle</strong>, and a thresholding activation unit using 16-bit SInt in Q8.8 with per-layer configuration. Supporting a configurable threshold widened the configuration instruction bus from 22 to 38 bits. Configurability carries a cost, which here falls on instruction bandwidth.</span>
+    </p>
+    <p>
+      <span data-lang="zh">在 Synopsys HAPS-80 S104（Xilinx XCVU440）上完成原型化。设计规模可在单片 FPGA 内容纳，<strong>无需 partitioning</strong>，从而避免了原型验证中最繁琐的环节。在 <strong>200 MHz</strong> 下复现 GPU 基线渲染，PSNR 为 <strong>29.91 dB</strong>。</span>
+      <span data-lang="en">Prototyping was carried out on a Synopsys HAPS-80 S104 (Xilinx XCVU440). The design fits within a single FPGA and <strong>requires no partitioning</strong>, which removes the most laborious step of prototyping. At <strong>200 MHz</strong> it reproduces the GPU baseline render at PSNR <strong>29.91 dB</strong>.</span>
+    </p>
+    <p>
+      <span data-lang="zh">验证采用 SpinalSim + VCS 仿真，配合 PyTorch + fxpmath 定点 golden，做到 bit-level 对齐。</span>
+      <span data-lang="en">Verification used SpinalSim + VCS against a PyTorch + fxpmath fixed-point golden model, aligned at bit level.</span>
+    </p>
+
+    <figure class="figure-wide">
+      <img src="../assets/img/projects/zeroblade/arch.png" width="1600" height="613" loading="lazy"
+           data-lightbox alt="ZeroBlade architecture">
+      <figcaption>
+        <span data-lang="zh">整体架构：外积 PE 阵列、阈值化 Post-Act Unit（T-sparse）与 R-Sparse Detector；右侧为两个单元的展开。</span>
+        <span data-lang="en">Overall architecture: the outer-product PE array, the thresholding post-activation unit (T-sparse) and the R-sparse detector, with both units expanded on the right.</span>
+      </figcaption>
+    </figure>
+
+    <div class="gallery">
+      <figure>
+        <img class="img--tall img--fit" src="../assets/img/projects/zeroblade/haps-system.png" width="736" height="1160" loading="lazy"
+             data-lightbox alt="HAPS system integration">
+        <figcaption><span data-lang="zh">HAPS 系统集成：Host PC 经 PCIe 配置，DRAM 经 DMA 供数，ZeroBlade 挂在 AXI 上</span><span data-lang="en">HAPS system integration: host PC configures over PCIe, DRAM feeds data over DMA, ZeroBlade sits on AXI</span></figcaption>
+      </figure>
+      <figure>
+        <img class="img--tall" src="../assets/img/projects/zeroblade/haps80.jpg" width="699" height="1160" loading="lazy"
+             data-lightbox alt="HAPS-80 prototyping platform">
+        <figcaption><span data-lang="zh">Synopsys HAPS-80 S104 原型平台</span><span data-lang="en">The Synopsys HAPS-80 S104 prototyping platform</span></figcaption>
+      </figure>
+      <figure>
+        <img class="img--tall img--fit" src="../assets/img/projects/zeroblade/render-compare.png" width="509" height="1160" loading="lazy"
+             data-lightbox alt="Prototype render versus GPU ground truth">
+        <figcaption>
+          <span data-lang="zh">原型渲染结果与 GPU 基线对比，PSNR 29.91 dB <span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></span>
+          <span data-lang="en">Prototype render versus the GPU baseline, PSNR 29.91 dB <span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ---------- ISCAS 2026 现场 ---------- -->
+  <section class="psection" id="talk">
+    <h2><span data-lang="zh">ISCAS 2026 现场</span><span data-lang="en">At ISCAS 2026</span></h2>
+    <p>
+      <span data-lang="zh">本工作于 2026 年 5 月在上海举行的 IEEE ISCAS 2026 上作口头报告，内容涵盖 HiSparse 两档稀疏模式对精度与吞吐的可调性，以及 HAPS-80 原型在 200 MHz 下 29.91 dB 的复现结果。</span>
+      <span data-lang="en">This work was presented orally at IEEE ISCAS 2026 in Shanghai in May 2026, covering how the two sparsity modes of HiSparse make accuracy and throughput jointly tunable, together with the HAPS-80 prototype result of 29.91 dB at 200 MHz.</span>
+    </p>
+
+    <div class="gallery">
+      <figure>
+        <img src="../assets/img/projects/zeroblade/iscas2026-talk.jpg" width="1600" height="1067" loading="lazy"
+             data-lightbox alt="Oral presentation at IEEE ISCAS 2026">
+        <figcaption><span data-lang="zh">ISCAS 2026 口头报告</span><span data-lang="en">The oral presentation at ISCAS 2026</span></figcaption>
+      </figure>
+      <figure>
+        <img src="../assets/img/projects/zeroblade/iscas2026-speaker.jpg" width="1067" height="1600" loading="lazy"
+             data-lightbox alt="Speaking at the podium">
+        <figcaption><span data-lang="zh">讲台上</span><span data-lang="en">At the podium</span></figcaption>
+      </figure>
+      <figure>
+        <img src="../assets/img/projects/zeroblade/iscas2026-slide.jpg" width="1600" height="1067" loading="lazy"
+             data-lightbox alt="Render quality slide">
+        <figcaption><span data-lang="zh">渲染质量一页</span><span data-lang="en">The render-quality slide</span></figcaption>
+      </figure>
+      <figure>
+        <img src="../assets/img/projects/zeroblade/iscas2026-room.jpg" width="1600" height="1067" loading="lazy"
+             data-lightbox alt="Session room during the talk">
+        <figcaption><span data-lang="zh">报告会场</span><span data-lang="en">The session room</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="psection" id="papers">
+    <h2><span data-lang="zh">相关论文</span><span data-lang="en">Related publication</span></h2>
+    <ul class="plist">
+      <li>
+        ZeroBlade: A Spatial Similarity-aware HiSparse MLP Engine for Neural Volume Rendering —
+        <em>IEEE ISCAS 2026</em>, pp. 1271–1275
+        <span data-lang="zh"> · CCF-B · 第一作者</span><span data-lang="en"> · CCF-B · first author</span>
+        <a class="btn-mini" href="https://doi.org/10.1109/ISCAS66217.2026.11562197" rel="noopener">DOI</a>
+      </li>
+    </ul>
+  </section>
+
+  <nav class="pnav">
+    <a href="../index.html#projects"><span data-lang="zh">← 全部项目</span><span data-lang="en">← All projects</span></a>
+    <a href="zerotetris.html"><span data-lang="zh">← 上一代设计：ZeroTetris</span><span data-lang="en">← Previous generation: ZeroTetris</span></a>
+  </nav>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> <span data-lang="zh">李安童 Antong Li</span><span data-lang="en">Antong Li</span></span>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js" defer></script>
+<script src="../assets/js/lightbox.js" defer></script>
+</body>
+</html>

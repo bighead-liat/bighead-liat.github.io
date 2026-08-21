@@ -1,0 +1,790 @@
+/* ==========================================================================
+   components.css — 徽章、卡片、时间线、数据表、画廊、灯箱
+   ========================================================================== */
+
+/* ---------- 口径徽章 ----------
+   来源：hw_liat_summary.md 的标注约定。把"这个数字是怎么来的"
+   做成一等视觉元素：硅上实测 / 综合 / 仿真 / 外推，颜色可信度递减。 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  padding: 0.1em 0.5em;
+  border-radius: 999px;
+  white-space: nowrap;
+  vertical-align: 0.08em;
+}
+
+.badge::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.badge--silicon { background: var(--badge-silicon-bg); color: var(--badge-silicon-fg); }
+.badge--synth   { background: var(--badge-synth-bg);   color: var(--badge-synth-fg); }
+.badge--sim     { background: var(--badge-sim-bg);     color: var(--badge-sim-fg); }
+.badge--extrap  { background: var(--badge-extrap-bg);  color: var(--badge-extrap-fg); }
+
+/* 徽章图例条 */
+.badge-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  margin-bottom: 1.4rem;
+}
+
+.badge-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ---------- 标签 ---------- */
+.tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--fg-muted);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15em 0.7em;
+  white-space: nowrap;
+}
+
+.tag--accent {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.card--soft {
+  background: var(--bg-soft);
+  border-color: var(--border-soft);
+}
+
+/* 项目卡片（首页 Projects 区） */
+.pcard {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.pcard:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.pcard__cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--bg-inset);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* 主卡：六张卡等大的时候，唯一一颗流片实测的芯片和在研项目看起来一样重。
+   把它拉成通栏横排，权重差别一眼就出来了。 */
+.pcard--lead {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 861px) {
+  .pcard--lead {
+    flex-direction: row;
+  }
+
+  .pcard--lead .pcard__cover {
+    width: 44%;
+    flex-shrink: 0;
+    aspect-ratio: auto;
+    align-self: stretch;
+    border-bottom: 0;
+    border-right: 1px solid var(--border-soft);
+  }
+
+  .pcard--lead .pcard__body {
+    padding: 1.15rem 1.25rem 1.2rem;
+    gap: 0.6rem;
+  }
+
+  .pcard--lead .pcard__title {
+    font-size: 1.25rem;
+  }
+
+  .pcard--lead .pcard__points {
+    font-size: 0.9rem;
+  }
+}
+
+.pcard__body {
+  padding: 0.9rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.pcard__title {
+  font-size: 1.02rem;
+  margin: 0;
+}
+
+.pcard__title a {
+  color: var(--fg);
+}
+
+.pcard__title a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.pcard__meta {
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+}
+
+.pcard__points {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.pcard__points li {
+  padding-left: 0.9rem;
+  position: relative;
+}
+
+.pcard__points li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--fg-faint);
+}
+
+.pcard__foot {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* ---------- 条目（教育 / 经历 / 论文 通用） ---------- */
+.entry {
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.entry:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.entry:first-child {
+  padding-top: 0;
+}
+
+.entry__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.3rem 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.entry__title {
+  font-size: 1rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+.entry__when {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+.entry__sub {
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.entry__body {
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+}
+
+.entry__body li {
+  padding-left: 1rem;
+  position: relative;
+  margin-bottom: 0.2rem;
+}
+
+.entry__body li::before {
+  content: "·";
+  position: absolute;
+  left: 0.25rem;
+  color: var(--fg-faint);
+  font-weight: 700;
+}
+
+/* ---------- News 时间线 ---------- */
+.news {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+}
+
+.news li {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.news__date {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+/* ---------- Publications ---------- */
+.pub {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.pub:last-child {
+  border-bottom: 0;
+}
+
+/* 没有缩略图的条目 —— 单列，否则文字会挤在 132px 的缩略图栏里。
+   宁可不放图，也不要放占位图。 */
+.pub--nothumb {
+  grid-template-columns: 1fr;
+}
+
+.pub__thumb {
+  width: 132px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+}
+
+.pub__title {
+  font-size: 0.96rem;
+  font-weight: 650;
+  margin-bottom: 0.2rem;
+  line-height: 1.45;
+}
+
+.pub__authors {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  margin-bottom: 0.2rem;
+}
+
+/* 作者列表里高亮自己 */
+.pub__me {
+  color: var(--fg);
+  font-weight: 650;
+}
+
+/* 作者脚注（如同等贡献声明）。共同一作这类声明只挂标签容易被质疑，
+   把论文里的原始依据一并写出来。 */
+.pub__note {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  margin-bottom: 0.5rem;
+}
+
+.pub__venue {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  margin-bottom: 0.5rem;
+}
+
+.pub__venue em {
+  font-style: normal;
+  font-weight: 650;
+  color: var(--fg);
+}
+
+.pub__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+/* 论文链接按钮。未提供资源时用 .btn-mini--todo 置灰，
+   并配 aria-disabled + title 说明，不做成死链。 */
+.btn-mini {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.6;
+  padding: 0.1em 0.6em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--fg-muted);
+  background: var(--bg);
+}
+
+.btn-mini:hover {
+  text-decoration: none;
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.btn-mini--todo {
+  color: var(--fg-faint);
+  background: var(--bg-inset);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.btn-mini--todo:hover {
+  color: var(--fg-faint);
+  border-color: var(--border);
+  background: var(--bg-inset);
+}
+
+/* ---------- 技能表 ---------- */
+.skills {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.skill-row {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.skill-row__label {
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--fg);
+  padding-top: 0.15rem;
+}
+
+@media (max-width: 620px) {
+  .skill-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .pub {
+    grid-template-columns: 1fr;
+  }
+
+  .pub__thumb {
+    width: 100%;
+    max-width: 240px;
+  }
+
+  .news li {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
+
+/* ==========================================================================
+   项目详情页
+   ========================================================================== */
+
+.crumb {
+  font-size: 0.83rem;
+  color: var(--fg-faint);
+  padding: 1.2rem 0 0;
+}
+
+.crumb a {
+  color: var(--fg-muted);
+}
+
+.page-head {
+  padding: 0.8rem 0 1.6rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.8rem;
+}
+
+.page-head h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.page-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+  margin-bottom: 0.9rem;
+}
+
+.page-head__meta span:not(:last-child)::after {
+  content: " ·";
+  color: var(--border);
+}
+
+.page-head__lede {
+  font-size: 1rem;
+  color: var(--fg-muted);
+  max-width: 68ch;
+}
+
+.psection {
+  padding: 1.7rem 0;
+  border-top: 1px solid var(--border-soft);
+  scroll-margin-top: calc(var(--nav-h) + 12px);
+}
+
+.psection > h2 {
+  margin-bottom: 0.9rem;
+}
+
+.psection > h3 {
+  margin: 1.3rem 0 0.5rem;
+}
+
+.psection p,
+.psection ul {
+  max-width: 74ch;
+}
+
+.plist li {
+  position: relative;
+  padding-left: 1.15rem;
+  margin-bottom: 0.45rem;
+  color: var(--fg-muted);
+  font-size: 0.93rem;
+}
+
+.plist li::before {
+  content: "▹";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.plist strong {
+  color: var(--fg);
+}
+
+/* ---------- 「我的边界」 ----------
+   主动划清负责/不负责的范围。用左边框而非整块高亮，
+   避免读起来像免责声明。 */
+.scope {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  padding: 1rem 1.1rem;
+}
+
+.scope h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.scope dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 0.8rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.scope dt {
+  font-weight: 650;
+  white-space: nowrap;
+  color: var(--fg);
+}
+
+.scope dd {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.scope dt.is-out {
+  color: var(--badge-extrap-fg);
+}
+
+@media (max-width: 620px) {
+  .scope dl {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .scope dd {
+    margin-bottom: 0.55rem;
+  }
+}
+
+/* ---------- 数据表 ---------- */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+table.data {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+table.data th,
+table.data td {
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+
+table.data thead th {
+  background: var(--bg-soft);
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+table.data tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+table.data tbody tr:hover {
+  background: var(--bg-soft);
+}
+
+table.data td.n {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 关键结果表：指标 | 数值 | 口径 */
+table.data td:first-child {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* ---------- 媒体区 ---------- */
+.media-block {
+  margin: 1.2rem 0;
+}
+
+.media-block video {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #000;
+}
+
+.media-block figcaption,
+.gallery figcaption {
+  font-size: 0.8rem;
+  color: var(--fg-faint);
+  margin-top: 0.45rem;
+  line-height: 1.5;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.9rem;
+  margin: 1.2rem 0;
+}
+
+.gallery figure {
+  margin: 0;
+}
+
+.gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+  cursor: zoom-in;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.gallery img:hover {
+  border-color: var(--accent);
+  transform: scale(1.01);
+}
+
+/* 竖构图（论文里的竖向子图、竖拍实物照）。默认的 4:3 会把它们切掉大半。 */
+.gallery img.img--tall {
+  aspect-ratio: 3 / 4;
+}
+
+/* 框图、带文字标注的图不能裁 —— 裁掉的往往正是图例和数值。
+   用 contain 完整显示，留白由 bg-inset 补。 */
+.gallery img.img--fit {
+  object-fit: contain;
+}
+
+/* 单张宽图（架构图等）—— 不裁剪，保留原始比例 */
+.figure-wide {
+  margin: 1.2rem 0;
+}
+
+.figure-wide img {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+  cursor: zoom-in;
+}
+
+/* ---------- 灯箱 ---------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.86);
+  padding: 3rem 1rem;
+}
+
+.lightbox[open],
+.lightbox.is-open {
+  display: flex;
+}
+
+.lightbox__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.lightbox__cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1rem;
+  text-align: center;
+  color: #d8dee4;
+  font-size: 0.83rem;
+  padding: 0 3rem;
+}
+
+.lightbox__btn {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox__btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.lightbox__btn--close { top: 1rem; right: 1rem; }
+.lightbox__btn--prev  { left: 1rem;  top: 50%; transform: translateY(-50%); }
+.lightbox__btn--next  { right: 1rem; top: 50%; transform: translateY(-50%); }
+
+/* ---------- 提示框（用于「口径存疑 / 尚未完成」类说明） ---------- */
+.note {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--badge-extrap-fg);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  padding: 0.8rem 1rem;
+  font-size: 0.88rem;
+  color: var(--fg-muted);
+  margin: 1.1rem 0;
+}
+
+.note strong {
+  color: var(--fg);
+}
+
+/* ---------- 下一个/上一个项目导航 ---------- */
+.pnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: space-between;
+  padding: 1.6rem 0 0;
+  border-top: 1px solid var(--border);
+  margin-top: 1.6rem;
+  font-size: 0.9rem;
+}

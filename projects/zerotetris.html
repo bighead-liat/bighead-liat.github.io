@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZeroTetris — HLMC 28nm 流片 · 李安童 Antong Li</title>
+<meta name="description" content="ZeroTetris：面向神经体渲染的相似性驱动稀疏 MLP 加速器。HLMC 28nm 全流程流片、芯片实测与深低温表征。">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<meta property="og:image" content="https://bighead-liat.github.io/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+
+<script>
+(function () {
+  var d = document.documentElement;
+  try {
+    var l = localStorage.getItem('liat-site-lang');
+    if (l !== 'zh' && l !== 'en') l = /^zh\b/i.test(navigator.language || '') ? 'zh' : 'en';
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l === 'zh' ? 'zh-CN' : 'en');
+    var t = localStorage.getItem('liat-site-theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    d.setAttribute('data-theme', t);
+  } catch (e) { d.setAttribute('data-theme', 'light'); }
+})();
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main"><span data-lang="zh">跳到主内容</span><span data-lang="en">Skip to content</span></a>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__brand" href="../index.html"><span data-lang="zh">李安童</span><span data-lang="en">Antong Li</span></a>
+    <div class="nav__links">
+      <a href="../index.html#about"><span data-lang="zh">简介</span><span data-lang="en">About</span></a>
+      <a href="../index.html#publications"><span data-lang="zh">论文</span><span data-lang="en">Publications</span></a>
+      <a href="../index.html#projects"><span data-lang="zh">项目</span><span data-lang="en">Projects</span></a>
+      <a href="../index.html#contact"><span data-lang="zh">联系</span><span data-lang="en">Contact</span></a>
+    </div>
+    <div class="nav__tools">
+      <button class="icon-btn" id="lang-toggle" type="button" aria-label="Switch language">EN</button>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme">☾</button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="wrap">
+
+  <p class="crumb">
+    <a href="../index.html#projects"><span data-lang="zh">← 返回项目列表</span><span data-lang="en">← Back to projects</span></a>
+  </p>
+
+  <header class="page-head">
+    <h1>ZeroTetris</h1>
+    <div class="page-head__meta">
+      <span>2023.09 – 2025.06</span>
+      <span data-lang="zh">核心成员</span><span data-lang="en">Core contributor</span>
+      <span>HLMC 28nm</span>
+      <span data-lang="zh">全流程流片 + 芯片实测</span><span data-lang="en">Full tape-out + silicon measurement</span>
+    </div>
+    <p class="page-head__lede">
+      <span data-lang="zh">面向神经体渲染的稀疏 MLP 加速器，利用空间相似性引发的激活稀疏跳过无效计算。完成 HLMC 28nm 全流程流片、芯片实测与深低温表征，成果发表于 IEEE TCAD（共同第一作者）与 DAC 2024。</span>
+      <span data-lang="en">A sparse MLP accelerator for neural volume rendering that skips ineffectual computation by exploiting activation sparsity induced by spatial similarity. Taped out in HLMC 28nm, measured on silicon and characterized down to cryogenic temperatures. Published in IEEE TCAD (co-first author) and DAC 2024.</span>
+    </p>
+    <div class="tag-row">
+      <span class="tag tag--accent" data-lang="zh">IEEE TCAD · CCF-A</span>
+      <span class="tag tag--accent" data-lang="en">IEEE TCAD · CCF-A</span>
+      <span class="tag">DAC 2024 · CCF-A</span>
+      <span class="tag">SpinalHDL / Verilog</span>
+      <span class="tag">Synopsys DC / ICC2</span>
+    </div>
+  </header>
+
+  <!-- ---------- 我的边界 ---------- -->
+  <section class="psection" style="border-top:0;padding-top:0">
+    <div class="scope">
+      <h3>
+        <span data-lang="zh">我的边界</span><span data-lang="en">Scope of my contribution</span>
+      </h3>
+      <dl>
+        <dt><span data-lang="zh">独立完成</span><span data-lang="en">Solely mine</span></dt>
+        <dd>
+          <span data-lang="zh">板级测试系统（PC → PCIe → XDMA → 芯片）与 C++ 主机驱动；自定义 EDR 帧格式；深低温测试平台搭建与全部表征数据。</span>
+          <span data-lang="en">The board-level test system (PC → PCIe → XDMA → chip) and its C++ host driver; the custom EDR frame format; the cryogenic test rig and all characterization data.</span>
+        </dd>
+
+        <dt><span data-lang="zh">主要负责</span><span data-lang="en">Primarily mine</span></dt>
+        <dd>
+          <span data-lang="zh">稀疏编码器 (SE) 与部分结果合并器 (PM) 等核心 RTL 模块；从 FP32 参考模型到芯片端定点的量化部署链路。</span>
+          <span data-lang="en">Core RTL blocks including the sparse encoder (SE) and partial-result merger (PM); the quantization deployment path from the FP32 reference model to on-chip fixed point.</span>
+        </dd>
+
+        <dt class="is-out"><span data-lang="zh">参与而非主导</span><span data-lang="en">Participated, did not own</span></dt>
+        <dd>
+          <span data-lang="zh">Synopsys DC 综合、ICC2 布局布线与时序收敛为团队协作完成，本人参与其中，并非独立负责整个后端流程。</span>
+          <span data-lang="en">DC synthesis, ICC2 place-and-route and timing closure were a team effort in which I took part; I did not own the backend flow end to end.</span>
+        </dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ---------- 关键结果 ---------- -->
+  <section class="psection" id="results">
+    <h2><span data-lang="zh">关键结果</span><span data-lang="en">Key results</span></h2>
+
+    <div class="badge-legend">
+      <span class="badge-legend__item"><span class="badge badge--silicon"><span data-lang="zh">硅上实测</span><span data-lang="en">silicon</span></span>
+        <span class="small"><span data-lang="zh">芯片或板上测到的</span><span data-lang="en">measured on chip or board</span></span></span>
+      <span class="badge-legend__item"><span class="badge badge--synth"><span data-lang="zh">综合报告</span><span data-lang="en">synthesis</span></span>
+        <span class="small"><span data-lang="zh">EDA 工具报告</span><span data-lang="en">from EDA reports</span></span></span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th><span data-lang="zh">指标</span><span data-lang="en">Metric</span></th>
+            <th><span data-lang="zh">数值</span><span data-lang="en">Value</span></th>
+            <th><span data-lang="zh">口径</span><span data-lang="en">Provenance</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-lang="zh">Die 面积</span><span data-lang="en">Die area</span></td>
+            <td class="n">3.18 mm² <span class="muted">(core 3.02 mm²)</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">流片</span><span data-lang="en">taped out</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">工作范围</span><span data-lang="en">Operating range</span></td>
+            <td class="n">50 – 125 MHz @ 0.62 – 0.9 V</td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">实测</span><span data-lang="en">measured</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">功耗</span><span data-lang="en">Power</span></td>
+            <td class="n">25.92 – 139.59 mW</td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">实测</span><span data-lang="en">measured</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">常温能效</span><span data-lang="en">Efficiency, room temp.</span></td>
+            <td class="n"><strong>9.01 TOPS/W</strong></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">实测</span><span data-lang="en">measured</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">渲染精度</span><span data-lang="en">Render quality</span></td>
+            <td class="n">PSNR 42.59 dB</td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">芯片渲染</span><span data-lang="en">on-chip render</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">最低测试温度</span><span data-lang="en">Lowest temperature</span></td>
+            <td class="n">−167 °C</td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">实测</span><span data-lang="en">measured</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">低温最优能效</span><span data-lang="en">Best cryogenic efficiency</span></td>
+            <td class="n"><strong>26.84 TOPS/W</strong> <span class="muted">@ −100 °C / 0.58 V / 25 MHz</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">实测</span><span data-lang="en">measured</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ---------- 架构 ---------- -->
+  <section class="psection" id="arch">
+    <h2><span data-lang="zh">架构</span><span data-lang="en">Architecture</span></h2>
+    <p>
+      <span data-lang="zh">神经体渲染中，空间上相邻的采样点会激发高度相似的中间激活。ZeroTetris 把这种相似性转成结构化的激活稀疏，用稀疏编码器 (SE) 在数据进入 MLP 阵列前筛掉无效项，再由部分结果合并器 (PM) 把分散的部分和重新拼回完整输出。由此跳过的不仅是乘法运算，还包括相应的取数与写回操作。</span>
+      <span data-lang="en">In neural volume rendering, spatially adjacent sample points excite highly similar intermediate activations. ZeroTetris turns that similarity into structured activation sparsity: a sparse encoder (SE) filters ineffectual entries before data enters the MLP array, and a partial-result merger (PM) reassembles the scattered partial sums into complete outputs. What is skipped comprises not only the multiplications but the corresponding fetches and write-backs.</span>
+    </p>
+
+    <figure class="figure-wide">
+      <img src="../assets/img/projects/zerotetris/arch.png" width="1600" height="1032" loading="lazy"
+           data-lightbox alt="ZeroTetris architecture block diagram">
+      <figcaption>
+        <span data-lang="zh">架构框图：稀疏编码器 (SE)、MLP 阵列与部分结果合并器 (PM)。</span>
+        <span data-lang="en">Block diagram: sparse encoder (SE), MLP array and partial-result merger (PM).</span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ---------- 芯片实测 ---------- -->
+  <section class="psection" id="silicon">
+    <h2><span data-lang="zh">芯片实测</span><span data-lang="en">Silicon measurement</span></h2>
+
+    <p>
+      <span data-lang="zh">测试系统由本人从零搭建：PC 经 PCIe 与 XDMA 直连芯片，主机侧配套 C++ 驱动。帧格式自定义了一套 EDR，包含 3 bit 指数加 16 bit 尾数的浮点、Q8.16 定点，以及 2×2 的 RGBA 打包，其目的是使单次 DMA 传输尽可能对齐芯片内部的数据组织方式。</span>
+      <span data-lang="en">The test system was built from scratch: PC to chip over PCIe and XDMA, with an accompanying C++ host driver. The frame format is a custom EDR layout comprising a 3-bit-exponent / 16-bit-mantissa float, Q8.16 fixed point and 2×2 RGBA packing, so that a single DMA transfer aligns as closely as possible with the internal data organization of the chip.</span>
+    </p>
+
+    <!-- 视频待补：暂无可公开的演示片源。
+         有片源后把下面这段取消注释，并按 MEDIA.md 的 ffmpeg 命令压制、生成 poster。
+    <figure class="media-block">
+      <video controls preload="none" width="1600" height="900"
+             poster="../assets/video/zerotetris/chip-render-800.poster.jpg">
+        <source src="../assets/video/zerotetris/chip-render-800.mp4" type="video/mp4">
+      </video>
+      <figcaption>
+        <span data-lang="zh">芯片实测：100 MHz 下渲染出完整的 800×800 图像。</span>
+        <span data-lang="en">Chip under test: a full 800×800 image rendered at 100 MHz.</span>
+      </figcaption>
+    </figure>
+    -->
+
+    <h3><span data-lang="zh">从首次上电失败到 100 MHz 整图渲染</span><span data-lang="en">From a failed first power-up to a full frame at 100 MHz</span></h3>
+    <p>
+      <span data-lang="zh">芯片首次上电时，50 MHz 下的渲染结果即为错误，且表现为数值不符而非图像异常。此类故障的排查难点在于，缺陷可能位于链路上的任一环节：主机驱动、DMA、帧格式解析、芯片内部数据通路，或采样时序。</span>
+      <span data-lang="en">On first power-up the chip produced incorrect results at 50 MHz, manifesting as numerical mismatch rather than visual corruption. The difficulty of this failure mode is that the fault may reside anywhere along the chain: the host driver, DMA, frame parsing, the on-chip datapath, or sampling timing.</span>
+    </p>
+    <p>
+      <span data-lang="zh">最终定位于接口采样时序。解决方案是引入时钟相位调节流程：逐档扫描相位，每档执行一次完整渲染并与 golden 比对，据此确定可用的相位窗口，取窗口中心作为工作点。相位窗口稳定后即可提升工作频率，最终在 <strong>100 MHz 下完成 800×800 整图渲染</strong>。</span>
+      <span data-lang="en">The root cause was interface sampling timing. The remedy was a clock-phase calibration procedure: phases are swept step by step, a full render is executed and compared against golden at each step, the window of working phases is thereby determined, and the centre of that window is taken as the operating point. Once the phase window was stable the frequency could be raised, yielding a <strong>complete 800×800 render at 100 MHz</strong>.</span>
+    </p>
+
+    <div class="gallery">
+      <figure>
+        <img class="img--tall" src="../assets/img/projects/zerotetris/chip-micrograph.jpg" width="490" height="745" loading="lazy"
+             data-lightbox alt="Die micrograph">
+        <figcaption><span data-lang="zh">芯片显微照 / 版图（die 3.18 mm²）</span><span data-lang="en">Die micrograph / layout (3.18 mm²)</span></figcaption>
+      </figure>
+      <figure>
+        <img class="img--tall img--fit" src="../assets/img/projects/zerotetris/test-board.jpg" width="655" height="745" loading="lazy"
+             data-lightbox alt="PCIe test board">
+        <figcaption><span data-lang="zh">PCIe 测试板与芯片座</span><span data-lang="en">PCIe test board with chip socket</span></figcaption>
+      </figure>
+      <figure>
+        <img class="img--tall img--fit" src="../assets/img/projects/zerotetris/render-compare.png" width="324" height="745" loading="lazy"
+             data-lightbox alt="Render comparison">
+        <figcaption><span data-lang="zh">芯片渲染结果 vs FP32 GPU 基线，PSNR 42.59 dB</span><span data-lang="en">On-chip render vs FP32 GPU baseline, PSNR 42.59 dB</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ---------- 量化部署 ---------- -->
+  <section class="psection" id="quant">
+    <h2><span data-lang="zh">量化部署</span><span data-lang="en">Quantization</span></h2>
+    <p>
+      <span data-lang="zh">从 Python FP32 参考模型到芯片端是一条完整的定点部署链路，位宽 <strong>11 – 16 bit 混合定点</strong>，按层、按数据流类型分别分配。权重、激活与累加器对量化误差的敏感度不同，采用统一位宽将导致面积浪费或精度损失。最终实测渲染 <strong>PSNR 42.59 dB</strong>，相对 FP32 GPU 基线基本无损。</span>
+      <span data-lang="en">Between the Python FP32 reference model and what runs on the chip sits a complete fixed-point deployment path, using <strong>11–16 bit mixed fixed point</strong> assigned per layer and per dataflow type. Weights, activations and accumulators differ in their tolerance to quantization error, so a uniform width either wastes area or sacrifices accuracy. Measured render quality came out at <strong>PSNR 42.59 dB</strong>, essentially lossless against the FP32 GPU baseline.</span>
+    </p>
+  </section>
+
+  <!-- ---------- 深低温表征 ---------- -->
+  <section class="psection" id="cryo">
+    <h2><span data-lang="zh">深低温特性表征</span><span data-lang="en">Cryogenic characterization</span></h2>
+
+    <p>
+      <span data-lang="zh">低温测试平台由本人搭建，最低测试温度 <strong>−167 °C</strong>。开展该表征的动机在于：CMOS 在低温下载流子迁移率上升、亚阈值摆幅变陡，理论上同一频率可在更低电压下达成，而功耗与电压呈平方关系。但该收益的实际幅度及其拐点位置只能通过实测确定。</span>
+      <span data-lang="en">The cryogenic rig was built in-house, reaching <strong>−167 °C</strong>. The motivation for this characterization is that in CMOS at low temperature carrier mobility rises and subthreshold swing steepens, so in principle the same frequency is attainable at a lower voltage, while power scales with the square of voltage. The actual magnitude of that gain, and the point at which it turns over, can be established only by measurement.</span>
+    </p>
+
+    <!-- 视频待补：暂无可公开的演示片源。
+         有片源后把下面这段取消注释，并按 MEDIA.md 的 ffmpeg 命令压制、生成 poster。
+    <figure class="media-block">
+      <video controls preload="none" width="1600" height="900"
+             poster="../assets/video/zerotetris/cryo-run.poster.jpg">
+        <source src="../assets/video/zerotetris/cryo-run.mp4" type="video/mp4">
+      </video>
+      <figcaption>
+        <span data-lang="zh">深低温平台运行实况。</span>
+        <span data-lang="en">The cryogenic rig in operation.</span>
+      </figcaption>
+    </figure>
+    -->
+
+    <ul class="plist">
+      <li>
+        <span data-lang="zh"><strong>同频同压对照。</strong>固定 111 MHz @ 0.9 V，功耗从常温的 116.5 mW 降到 <strong>55.5 mW</strong>，<strong>下降 52%</strong>。该数据为纯粹的温度收益，未借助电压缩放。</span>
+        <span data-lang="en"><strong>Same frequency, same voltage.</strong> Held at 111 MHz @ 0.9 V, power drops from 116.5 mW at room temperature to <strong>55.5 mW</strong>, a <strong>52% reduction</strong>. This figure isolates the temperature effect, with no voltage scaling applied.</span>
+      </li>
+      <li>
+        <span data-lang="zh"><strong>最优工作点。</strong>在 −100 °C / 0.58 V / 25 MHz 下能效达 <strong>26.84 TOPS/W</strong>，相对常温最优点提升 <strong>3.19×</strong>。</span>
+        <span data-lang="en"><strong>Best operating point.</strong> At −100 °C / 0.58 V / 25 MHz, efficiency reaches <strong>26.84 TOPS/W</strong>, which is <strong>3.19×</strong> the best room-temperature point.</span>
+      </li>
+    </ul>
+
+    <div class="gallery">
+      <figure>
+        <img src="../assets/img/projects/zerotetris/cryo-platform.jpg" width="1600" height="1200" loading="lazy"
+             data-lightbox alt="Cryogenic test rig">
+        <figcaption><span data-lang="zh">自搭的深低温测试平台</span><span data-lang="en">The self-built cryogenic test rig</span></figcaption>
+      </figure>
+      <figure>
+        <img src="../assets/img/projects/zerotetris/power-temp.png" width="1093" height="719" loading="lazy"
+             data-lightbox alt="Power and efficiency vs temperature">
+        <figcaption><span data-lang="zh">功耗与能效随温度变化</span><span data-lang="en">Power and efficiency versus temperature</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ---------- 相关论文 ---------- -->
+  <section class="psection" id="papers">
+    <h2><span data-lang="zh">相关论文</span><span data-lang="en">Related publications</span></h2>
+    <ul class="plist">
+      <li>
+        ZeroTetris: A 9.01 TOPS/W Similarity-based Sparse MLP Engine for Neural Volume Rendering —
+        <em>IEEE TCAD</em><span data-lang="zh">，2026 · CCF-A · 共同第一作者 · Early Access</span><span data-lang="en">, 2026 · CCF-A · co-first author · Early Access</span>
+        <a class="btn-mini" href="https://doi.org/10.1109/TCAD.2026.3718806" rel="noopener">DOI</a>
+      </li>
+      <li>
+        ZeroTetris: A Similarity-based Sparse MLP Engine for Neural Volume Rendering —
+        <em>ACM/IEEE DAC 2024</em>, No. 224 <span data-lang="zh">· CCF-A</span><span data-lang="en">· CCF-A</span>
+        <a class="btn-mini" href="https://doi.org/10.1145/3649329.3655684" rel="noopener">DOI</a>
+      </li>
+    </ul>
+
+    <div class="gallery">
+      <figure>
+        <img src="../assets/img/projects/zerotetris/dac2024-poster.jpg" width="1600" height="1200" loading="lazy"
+             data-lightbox alt="ZeroTetris poster at DAC 2024">
+        <figcaption><span data-lang="zh">DAC 2024 海报现场（旧金山 Moscone Center）</span><span data-lang="en">The poster session at DAC 2024, Moscone Center, San Francisco</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <nav class="pnav">
+    <a href="../index.html#projects"><span data-lang="zh">← 全部项目</span><span data-lang="en">← All projects</span></a>
+    <a href="zeroblade.html"><span data-lang="zh">下一代设计：ZeroBlade →</span><span data-lang="en">Next generation: ZeroBlade →</span></a>
+  </nav>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> <span data-lang="zh">李安童 Antong Li</span><span data-lang="en">Antong Li</span></span>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js" defer></script>
+<script src="../assets/js/lightbox.js" defer></script>
+</body>
+</html>

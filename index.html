@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>李安童 Antong Li — 模型推理加速 · FPGA / ASIC 硬件加速器</title>
+<meta name="description" content="李安童 (Antong Li) — 上海科技大学电子科学与技术博士在读。做模型推理的硬件加速器（FPGA / ASIC）：架构、量化与算法-硬件协同设计，HLMC 28nm 流片与芯片实测。">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://bighead-liat.github.io/">
+
+<meta property="og:type" content="profile">
+<meta property="og:url" content="https://bighead-liat.github.io/">
+<meta property="og:title" content="李安童 Antong Li — 模型推理加速 · FPGA / ASIC 硬件加速器">
+<meta property="og:description" content="推理加速硬件加速器 · 算法-硬件协同设计 · HLMC 28nm 流片与芯片实测">
+<meta property="og:image" content="https://bighead-liat.github.io/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="李安童 Antong Li — 推理加速硬件加速器 · FPGA / ASIC">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/layout.css">
+<link rel="stylesheet" href="assets/css/components.css">
+
+<script>
+/* 在首次绘制前定好语言与主题，避免闪烁。
+   与 site.js 用同一组 key，逻辑保持一致。 */
+(function () {
+  var d = document.documentElement;
+  try {
+    var l = localStorage.getItem('liat-site-lang');
+    if (l !== 'zh' && l !== 'en') l = /^zh\b/i.test(navigator.language || '') ? 'zh' : 'en';
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l === 'zh' ? 'zh-CN' : 'en');
+
+    var t = localStorage.getItem('liat-site-theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    d.setAttribute('data-theme', t);
+  } catch (e) {
+    d.setAttribute('data-theme', 'light');
+  }
+})();
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main">
+  <span data-lang="zh">跳到主内容</span><span data-lang="en">Skip to content</span>
+</a>
+
+<!-- ==================== 导航 ==================== -->
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__brand" href="#top">
+      <span data-lang="zh">李安童</span><span data-lang="en">Antong Li</span>
+    </a>
+
+    <div class="nav__links">
+      <a href="#about"><span data-lang="zh">简介</span><span data-lang="en">About</span></a>
+      <a href="#news"><span data-lang="zh">动态</span><span data-lang="en">News</span></a>
+      <a href="#education"><span data-lang="zh">教育</span><span data-lang="en">Education</span></a>
+      <a href="#experience"><span data-lang="zh">经历</span><span data-lang="en">Experience</span></a>
+      <a href="#publications"><span data-lang="zh">论文</span><span data-lang="en">Publications</span></a>
+      <a href="#projects"><span data-lang="zh">项目</span><span data-lang="en">Projects</span></a>
+      <a href="#skills"><span data-lang="zh">技能</span><span data-lang="en">Skills</span></a>
+      <a href="#contact"><span data-lang="zh">联系</span><span data-lang="en">Contact</span></a>
+    </div>
+
+    <div class="nav__tools">
+      <button class="icon-btn" id="lang-toggle" type="button" aria-label="Switch language">EN</button>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme">☾</button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="wrap" id="top">
+
+  <!-- ==================== Hero ==================== -->
+  <header class="hero">
+    <div>
+      <h1 class="hero__name">
+        <span data-lang="zh">李安童<span class="latin">Antong Li</span></span>
+        <span data-lang="en">Antong Li<span class="latin">李安童</span></span>
+      </h1>
+
+      <p class="hero__role">
+        <span data-lang="zh">上海科技大学 · 电子科学与技术 博士在读（2023 – 2028）</span>
+        <span data-lang="en">PhD student in Electronic Science and Technology, ShanghaiTech University (2023 – 2028)</span>
+      </p>
+
+      <p class="hero__status">
+        <span data-lang="zh">2026 年秋季可实习 · 做模型推理的硬件加速器（FPGA / ASIC）</span>
+        <span data-lang="en">Available for a Fall 2026 internship · hardware accelerators (FPGA / ASIC) for model inference</span>
+      </p>
+
+      <div class="hero__tags">
+        <span class="tag tag--accent" data-lang="zh">推理加速器架构</span>
+        <span class="tag tag--accent" data-lang="en">Inference accelerator architecture</span>
+        <span class="tag" data-lang="zh">算法-硬件协同设计</span>
+        <span class="tag" data-lang="en">Algorithm–hardware co-design</span>
+        <span class="tag" data-lang="zh">HLMC 28nm 流片</span>
+        <span class="tag" data-lang="en">HLMC 28nm tape-out</span>
+        <span class="tag" data-lang="zh">SpinalHDL / RTL</span>
+        <span class="tag" data-lang="en">SpinalHDL / RTL</span>
+      </div>
+
+      <div class="social">
+        <a href="mailto:liat2023@shanghaitech.edu.cn">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 2h12.5c.97 0 1.75.78 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5C0 2.78.78 2 1.75 2Zm0 1.5a.25.25 0 0 0-.25.25v.32l6.5 3.79 6.5-3.79v-.32a.25.25 0 0 0-.25-.25Zm12.75 2.3-6.12 3.57a.75.75 0 0 1-.76 0L1.5 5.8v6.45c0 .14.11.25.25.25h12.5a.25.25 0 0 0 .25-.25Z"/></svg>
+          liat2023@shanghaitech.edu.cn
+        </a>
+        <a href="https://scholar.google.com/citations?user=GFJ1pa4AAAAJ" rel="me noopener">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0 0 4.36l3.02 1.65a4.98 4.98 0 0 1 9.96 0L16 4.36 8 0ZM4 6.9a4 4 0 1 0 8 0 4 4 0 0 0-8 0Z"/></svg>
+          <span data-lang="zh">Google 学术</span><span data-lang="en">Google Scholar</span>
+        </a>
+        <a href="assets/pdf/cv-zh.pdf">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1.75C2 .78 2.78 0 3.75 0h5.69c.46 0 .9.18 1.23.51l3.31 3.31c.33.33.52.78.52 1.24v9.19c0 .97-.78 1.75-1.75 1.75H3.75A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .14.11.25.25.25h8.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 8 4.25V1.5Zm5.75.56v2.19c0 .14.11.25.25.25h2.19Z"/></svg>
+          <span data-lang="zh">简历 PDF</span><span data-lang="en">CV (PDF)</span>
+        </a>
+      </div>
+    </div>
+
+    <img class="hero__photo" src="assets/img/profile/photo.jpg" width="600" height="840"
+         alt="李安童 / Antong Li">
+  </header>
+
+  <!-- ==================== 关键数字 ====================
+       全站每个数字都标口径，这里也不例外 —— 下面的 .stats-note 说明前三项来源。 -->
+  <div class="stats">
+    <div class="stat">
+      <span class="stat__num">3.18 mm²</span>
+      <span class="stat__label">
+        <span data-lang="zh">HLMC 28nm 流片 die</span>
+        <span data-lang="en">HLMC 28nm die, taped out</span>
+      </span>
+    </div>
+    <div class="stat">
+      <span class="stat__num">9.01 TOPS/W</span>
+      <span class="stat__label">
+        <span data-lang="zh">常温能效</span>
+        <span data-lang="en">Efficiency at room temperature</span>
+      </span>
+    </div>
+    <div class="stat">
+      <span class="stat__num">−167 °C</span>
+      <span class="stat__label">
+        <span data-lang="zh">深低温表征最低温</span>
+        <span data-lang="en">Lowest cryogenic test temperature</span>
+      </span>
+    </div>
+    <div class="stat">
+      <span class="stat__num">3 + 1</span>
+      <span class="stat__label">
+        <span data-lang="zh">CCF-A / CCF-B 论文</span>
+        <span data-lang="en">CCF-A / CCF-B papers</span>
+      </span>
+    </div>
+    <div class="stat">
+      <span class="stat__num">4</span>
+      <span class="stat__label">
+        <span data-lang="zh">Alveo V80 加速器</span>
+        <span data-lang="en">Accelerators on Alveo V80</span>
+      </span>
+    </div>
+  </div>
+
+  <p class="stats-note">
+    <span data-lang="zh">前三项均为 ZeroTetris 芯片的硅上实测值，测试与表征由本人完成。</span>
+    <span data-lang="en">The first three are silicon measurements of the ZeroTetris chip; the testing and characterization are my own work.</span>
+  </p>
+
+  <!-- ==================== 首屏实物图 ==================== -->
+  <div class="hero-strip">
+    <figure>
+      <a href="projects/zerotetris.html">
+        <img src="assets/img/projects/zerotetris/chip-micrograph.jpg" width="490" height="745"
+             alt="ZeroTetris die micrograph">
+      </a>
+      <figcaption>
+        <span data-lang="zh">die 显微照 · HLMC 28nm</span>
+        <span data-lang="en">Die micrograph · HLMC 28nm</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <a href="projects/zerotetris.html#silicon">
+        <img src="assets/img/projects/zerotetris/test-board.jpg" width="655" height="745"
+             alt="PCIe test board">
+      </a>
+      <figcaption>
+        <span data-lang="zh">PCIe 测试板 · 自建测试系统</span>
+        <span data-lang="en">PCIe test board · self-built test system</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <a href="projects/zerotetris.html#silicon">
+        <img src="assets/img/projects/zerotetris/render-compare-wide.png" width="347" height="236"
+             alt="Chip render versus GPU baseline">
+      </a>
+      <figcaption>
+        <span data-lang="zh">芯片渲染 vs GPU 基线 · PSNR 42.59 dB</span>
+        <span data-lang="en">Chip render vs GPU baseline · PSNR 42.59 dB</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <a href="projects/zerotetris.html#cryo">
+        <img src="assets/img/projects/zerotetris/cryo-platform.jpg" width="1600" height="1200"
+             alt="Cryogenic test rig">
+      </a>
+      <figcaption>
+        <span data-lang="zh">深低温测试平台 · 最低 −167 °C</span>
+        <span data-lang="en">Cryogenic test rig · down to −167 °C</span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- ==================== 简介 ==================== -->
+  <section class="section" id="about">
+    <div class="section__head">
+      <h2><span data-lang="zh">简介</span><span data-lang="en">About</span></h2>
+      <span class="en-label" data-lang="zh">About</span>
+      <span class="en-label" data-lang="en">简介</span>
+    </div>
+
+    <div data-lang="zh">
+      <p>我的研究方向是<strong>模型推理的硬件加速器（FPGA / ASIC）</strong>，关注从算法层的量化方案到物理实现的完整设计链路：量化位宽与精度边界的确定、脉动阵列与 dataflow 的规模选型、Attention 数据通路的组织、稀疏性与访存的协同优化，以及上述决策在面积与功耗上的代价核算。</p>
+      <p>已完成的工作覆盖不同负载（神经渲染、前馈 3D 重建、混合架构大模型的批量解码），但其中的核心设计问题高度一致：稀疏性如何转化为实际收益、中间状态应当片上常驻还是回写主存、算术强度在 roofline 上的位置，以及面积与频率的折衷。因此这些工作并非彼此独立的方向，而是同一套方法在不同负载上的应用。</p>
+      <p>在校期间参与一颗 <strong>HLMC 28nm</strong> 芯片的流片，并独立完成该芯片的实测与深低温表征，最低测试温度 −167 °C。现于一家初创芯片公司担任加速器方向的技术项目负责人，在 <strong>AMD Alveo V80</strong> 平台上负责四款加速器的系统架构、RTL 实现、上板验证与 ASIC 面积收敛。</p>
+      <p>已发表 CCF-A 类论文 3 篇、CCF-B 类论文 1 篇，另有第一作者论文 2 篇在投。</p>
+    </div>
+
+    <div data-lang="en">
+      <p>My research concerns <strong>hardware accelerators (FPGA / ASIC) for model inference</strong>, spanning the full design path from algorithm-level quantization to physical implementation: determining quantization width and accuracy boundaries, sizing systolic arrays and dataflow, organizing attention datapaths, co-optimizing sparsity and memory traffic, and accounting for the area and power cost of each of these decisions.</p>
+      <p>The workloads addressed so far differ (neural rendering, feed-forward 3D reconstruction, batch decoding for hybrid-architecture LLMs), yet the central design problems are largely identical: how sparsity translates into a realized gain, whether intermediate state should remain resident on-chip or be written back to main memory, where arithmetic intensity falls on the roofline, and how area trades against frequency. These are therefore not independent directions but a single methodology applied to different workloads.</p>
+      <p>During my studies I contributed to a chip taped out in <strong>HLMC 28nm</strong> and independently carried out its silicon measurement and cryogenic characterization, down to −167 °C. I am currently technical project lead for the accelerator track at a chip startup, responsible for the system architecture, RTL implementation, board-level validation and ASIC area convergence of four accelerators on the <strong>AMD Alveo V80</strong> platform.</p>
+      <p>Three CCF-A and one CCF-B papers published; two further first-author papers under review.</p>
+    </div>
+  </section>
+
+  <!-- ==================== 动态 ==================== -->
+  <section class="section section--tint" id="news">
+    <div class="section__head">
+      <h2><span data-lang="zh">动态</span><span data-lang="en">News</span></h2>
+      <span class="en-label" data-lang="zh">News</span>
+      <span class="en-label" data-lang="en">动态</span>
+    </div>
+
+    <ul class="news">
+      <li>
+        <span class="news__date">2026.07</span>
+        <span>
+          <span data-lang="zh"><em>ZeroTetris</em> 期刊版发表于 <strong>IEEE TCAD</strong>（CCF-A，共同第一作者）。</span>
+          <span data-lang="en"><em>ZeroTetris</em> journal version published in <strong>IEEE TCAD</strong> (CCF-A, co-first author).</span>
+        </span>
+      </li>
+      <li>
+        <span class="news__date">2026.07</span>
+        <span>
+          <span data-lang="zh"><em>SHARP-GS</em> 发表于 <strong>ACM SIGGRAPH 2026</strong>（CCF-A）。</span>
+          <span data-lang="en"><em>SHARP-GS</em> published at <strong>ACM SIGGRAPH 2026</strong> (CCF-A).</span>
+        </span>
+      </li>
+      <li>
+        <span class="news__date">2026.06</span>
+        <span>
+          <span data-lang="zh"><em>ZeroBlade</em> 发表于 <strong>IEEE ISCAS 2026</strong>（CCF-B，第一作者）。</span>
+          <span data-lang="en"><em>ZeroBlade</em> published at <strong>IEEE ISCAS 2026</strong> (CCF-B, first author).</span>
+        </span>
+      </li>
+      <li>
+        <span class="news__date">2025.11</span>
+        <span>
+          <span data-lang="zh">加入初创芯片团队，任加速器方向技术项目负责人。</span>
+          <span data-lang="en">Joined a chip startup as technical lead for the accelerator track.</span>
+        </span>
+      </li>
+      <li>
+        <span class="news__date">2025.11</span>
+        <span>
+          <span data-lang="zh"><em>ZeroTetris</em> 完成 HLMC 28nm 流片、芯片实测与深低温表征（最低 −167 °C）。</span>
+          <span data-lang="en"><em>ZeroTetris</em> completed HLMC 28nm tape-out, silicon measurement and cryogenic characterization down to −167 °C.</span>
+        </span>
+      </li>
+      <li>
+        <span class="news__date">2024.06</span>
+        <span>
+          <span data-lang="zh"><em>ZeroTetris</em> 发表于 <strong>ACM/IEEE DAC 2024</strong>（CCF-A）。</span>
+          <span data-lang="en"><em>ZeroTetris</em> published at <strong>ACM/IEEE DAC 2024</strong> (CCF-A).</span>
+        </span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ==================== 教育 ==================== -->
+  <section class="section" id="education">
+    <div class="section__head">
+      <h2><span data-lang="zh">教育背景</span><span data-lang="en">Education</span></h2>
+      <span class="en-label" data-lang="zh">Education</span>
+      <span class="en-label" data-lang="en">教育背景</span>
+    </div>
+
+    <div class="entry">
+      <div class="entry__head">
+        <h3 class="entry__title">
+          <span data-lang="zh">上海科技大学 — 博士 · 电子科学与技术</span>
+          <span data-lang="en">ShanghaiTech University — PhD, Electronic Science and Technology</span>
+        </h3>
+        <span class="entry__when">2023.09 – 2028.06</span>
+      </div>
+      <p class="entry__sub">
+        <span data-lang="zh">学分绩点 3.88 / 4.0</span>
+        <span data-lang="en">GPA 3.88 / 4.0</span>
+      </p>
+      <ul class="entry__body">
+        <li>
+          <span data-lang="zh">研究方向：神经网络推理加速、算法-硬件协同设计、神经渲染加速器</span>
+          <span data-lang="en">Research: neural network inference acceleration, algorithm–hardware co-design, neural rendering accelerators</span>
+        </li>
+        <li>
+          <span data-lang="zh">主修课程：数字集成电路 II (A+)、数字 VLSI 设计 (A)、EDA 自动化设计 (A+)、高阶数字信号处理 (A+)、智能计算系统 (A+)、FPGA 硬件系统设计 (A)</span>
+          <span data-lang="en">Coursework: Digital ICs II (A+), Digital VLSI Design (A), EDA Automation (A+), Advanced DSP (A+), Intelligent Computing Systems (A+), FPGA System Design (A)</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry__head">
+        <h3 class="entry__title">
+          <span data-lang="zh">上海科技大学 — 学士 · 电子信息工程</span>
+          <span data-lang="en">ShanghaiTech University — BEng, Electronic and Information Engineering</span>
+        </h3>
+        <span class="entry__when">2019.09 – 2023.06</span>
+      </div>
+      <p class="entry__sub">
+        <span data-lang="zh">学分绩点 3.49 / 4.0</span>
+        <span data-lang="en">GPA 3.49 / 4.0</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== 经历 ==================== -->
+  <section class="section section--tint" id="experience">
+    <div class="section__head">
+      <h2><span data-lang="zh">实习经历</span><span data-lang="en">Experience</span></h2>
+      <span class="en-label" data-lang="zh">Experience</span>
+      <span class="en-label" data-lang="en">实习经历</span>
+    </div>
+
+    <div class="entry">
+      <div class="entry__head">
+        <!-- 公司名只在这一处出现。若需匿名，把下面两行改成
+             「上海某初创芯片团队」/ "a chip startup in Shanghai" 即可。 -->
+        <h3 class="entry__title">
+          <span data-lang="zh">飓晟科技（GGU Technology）— 硬件研发实习生 · 项目技术负责人</span>
+          <span data-lang="en">GGU Technology — Hardware R&amp;D Intern, Technical Project Lead</span>
+        </h3>
+        <span class="entry__when">2025.11 – <span data-lang="zh">至今</span><span data-lang="en">present</span></span>
+      </div>
+
+      <p class="entry__body" style="margin-bottom:.7rem">
+        <span data-lang="zh">担任加速器方向的技术项目负责人，负责多款加速器从系统架构、RTL 实现、FPGA 上板验证到 ASIC 面积收敛的完整链路。验证平台为 AMD Alveo V80，目标工艺 28nm。其中两项工作已整理为第一作者论文投稿。</span>
+        <span data-lang="en">Technical project lead for the accelerator track, responsible for several accelerators across the full path from system architecture and RTL implementation through FPGA validation to ASIC area convergence. Validation platform: AMD Alveo V80; target process: 28nm. Two of these projects have been written up as first-author submissions.</span>
+      </p>
+
+      <ul class="entry__body">
+        <li>
+          <a href="projects/edge3dgs.html"><span data-lang="zh">端侧 3DGS 训练加速器</span><span data-lang="en">On-device 3DGS training accelerator</span></a>
+          <span class="muted"> — </span>
+          <span class="muted" data-lang="zh">系统架构 / 技术负责人 · 2025.11 – 至今</span>
+          <span class="muted" data-lang="en">system architecture / technical lead · 2025.11 – present</span>
+        </li>
+        <li>
+          <a href="projects/ff-hw.html"><span data-lang="zh">FF_HW：π³ 前馈 3D 重建推理加速器</span><span data-lang="en">FF_HW: π³ feed-forward 3D reconstruction inference accelerator</span></a>
+          <span class="muted"> — </span>
+          <span class="muted" data-lang="zh">独立负责人 · 2026.04 – 至今</span>
+          <span class="muted" data-lang="en">sole owner · 2026.04 – present</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ==================== 论文 ==================== -->
+  <section class="section" id="publications">
+    <div class="section__head">
+      <h2><span data-lang="zh">学术成果</span><span data-lang="en">Publications</span></h2>
+      <span class="en-label" data-lang="zh">Publications</span>
+      <span class="en-label" data-lang="en">学术成果</span>
+    </div>
+
+    <p class="small muted" style="margin-bottom:1rem">
+      <span data-lang="zh">加粗为本人姓名。TCAD 一篇目前为 Early Access，卷期页尚未分配。</span>
+      <span data-lang="en">My name is set in bold. The TCAD paper is currently in Early Access; volume, issue and page numbers have not yet been assigned.</span>
+    </p>
+
+    <div class="pub pub--nothumb">
+      <div>
+        <p class="pub__title">ZeroTetris: A 9.01 TOPS/W Similarity-based Sparse MLP Engine for Neural Volume Rendering</p>
+        <p class="pub__authors">Haochuan Wan*, <span class="pub__me">Antong Li*</span>, Linjie Ma, Pingqiang Zhou, Jingyi Yu, Xin Lou</p>
+        <p class="pub__venue">
+          <em>IEEE TCAD</em>
+          <span data-lang="zh">，2026 · CCF-A 类期刊 · Early Access</span>
+          <span data-lang="en">, 2026 · CCF-A journal · Early Access</span>
+        </p>
+        <p class="pub__note">
+          <span data-lang="zh">* 论文原文注明：Haochuan Wan 与 Antong Li 对本工作同等贡献。</span>
+          <span data-lang="en">* The paper states that Haochuan Wan and Antong Li contributed equally to this work.</span>
+        </p>
+        <div class="pub__links">
+          <span class="tag tag--accent" data-lang="zh">共同第一作者</span>
+          <span class="tag tag--accent" data-lang="en">Co-first author</span>
+          <!-- TODO: DOI 下来后把下面这行换成 <a class="btn-mini" href="https://doi.org/...">DOI</a> -->
+          <a class="btn-mini" href="https://doi.org/10.1109/TCAD.2026.3718806" rel="noopener">DOI</a>
+          <a class="btn-mini" href="assets/bib/wan2026zerotetris-tcad.bib">BibTeX</a>
+          <a class="btn-mini" href="projects/zerotetris.html">
+            <span data-lang="zh">项目页</span><span data-lang="en">Project</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pub pub--nothumb">
+      <div>
+        <p class="pub__title">SHARP-GS: Scalable High-fidelity Accelerated Rendering Pipeline for Ultra-high Resolution 3D Gaussian Splatting</p>
+        <p class="pub__authors">Junran Ding, Weihang Liu, Yuke Li, Yizhou Wang, <span class="pub__me">Antong Li</span>, Qihan Ding, Xin Lou, Jingyi Yu</p>
+        <p class="pub__venue">
+          <em>ACM SIGGRAPH 2026</em>, Article 25
+          <span data-lang="zh"> · CCF-A 类会议</span>
+          <span data-lang="en"> · CCF-A conference</span>
+        </p>
+        <div class="pub__links">
+          <a class="btn-mini" href="https://doi.org/10.1145/3799902.3811090" rel="noopener">DOI</a>
+          <a class="btn-mini" href="assets/bib/ding2026sharpgs.bib">BibTeX</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pub pub--nothumb">
+      <div>
+        <p class="pub__title">ZeroTetris: A Spacial Feature Similarity-based Sparse MLP Engine for Neural Volume Rendering</p>
+        <p class="pub__authors">Haochuan Wan, Linjie Ma, <span class="pub__me">Antong Li</span>, Pingqiang Zhou, Jingyi Yu, Xin Lou</p>
+        <p class="pub__venue">
+          <em>ACM/IEEE DAC 2024</em>, No. 224
+          <span data-lang="zh"> · CCF-A 类会议</span>
+          <span data-lang="en"> · CCF-A conference</span>
+        </p>
+        <div class="pub__links">
+          <a class="btn-mini" href="https://doi.org/10.1145/3649329.3655684" rel="noopener">DOI</a>
+          <a class="btn-mini" href="assets/bib/wan2024zerotetris.bib">BibTeX</a>
+          <a class="btn-mini" href="projects/zerotetris.html">
+            <span data-lang="zh">项目页</span><span data-lang="en">Project</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pub pub--nothumb">
+      <div>
+        <p class="pub__title">ZeroBlade: A Spatial Similarity-aware HiSparse MLP Engine for Neural Volume Rendering</p>
+        <p class="pub__authors"><span class="pub__me">Antong Li</span>, Haochuan Wan, Xiangyu Zhang, Xin Lou</p>
+        <p class="pub__venue">
+          <em>IEEE ISCAS 2026</em>, pp. 1271–1275
+          <span data-lang="zh"> · CCF-B 类会议</span>
+          <span data-lang="en"> · CCF-B conference</span>
+        </p>
+        <div class="pub__links">
+          <span class="tag tag--accent" data-lang="zh">第一作者</span>
+          <span class="tag tag--accent" data-lang="en">First author</span>
+          <a class="btn-mini" href="https://doi.org/10.1109/ISCAS66217.2026.11562197" rel="noopener">DOI</a>
+          <a class="btn-mini" href="assets/bib/li2026zeroblade.bib">BibTeX</a>
+          <a class="btn-mini" href="projects/zeroblade.html">
+            <span data-lang="zh">项目页</span><span data-lang="en">Project</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pub pub--nothumb">
+      <div>
+        <p class="pub__title">
+          <span data-lang="zh">第一作者论文 2 篇</span>
+          <span data-lang="en">Two first-author papers</span>
+        </p>
+        <p class="pub__venue">
+          <span data-lang="zh">均为<strong>第一作者</strong>，审稿中 · 两项工作均已在 Alveo V80 上完成上板验证</span>
+          <span data-lang="en"><strong>First author</strong> on both, under review · both validated on hardware on Alveo V80</span>
+        </p>
+        <div class="pub__links">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 项目 ==================== -->
+  <section class="section section--tint" id="projects">
+    <div class="section__head">
+      <h2><span data-lang="zh">项目</span><span data-lang="en">Projects</span></h2>
+      <span class="en-label" data-lang="zh">Projects</span>
+      <span class="en-label" data-lang="en">项目</span>
+    </div>
+
+    <div class="badge-legend">
+      <strong style="color:var(--fg)">
+        <span data-lang="zh">数字口径：</span><span data-lang="en">How each number was obtained:</span>
+      </strong>
+      <span class="badge-legend__item"><span class="badge badge--silicon"><span data-lang="zh">硅上实测</span><span data-lang="en">silicon</span></span></span>
+      <span class="badge-legend__item"><span class="badge badge--synth"><span data-lang="zh">综合报告</span><span data-lang="en">synthesis</span></span></span>
+      <span class="badge-legend__item"><span class="badge badge--sim"><span data-lang="zh">仿真</span><span data-lang="en">simulation</span></span></span>
+      <span class="badge-legend__item"><span class="badge badge--extrap"><span data-lang="zh">外推 / 分析模型</span><span data-lang="en">extrapolated / model</span></span></span>
+      <span class="small" data-lang="zh">各项目页逐条标注数据来源，并说明本人负责的范围。</span>
+      <span class="small" data-lang="en">Each project page labels the provenance of every figure and states the scope of my own contribution.</span>
+    </div>
+
+    <div class="grid-2">
+
+      <article class="pcard pcard--lead">
+        <img class="pcard__cover" src="assets/img/projects/zerotetris/cover.jpg" width="1279" height="719" loading="lazy" alt="ZeroTetris">
+        <div class="pcard__body">
+          <h3 class="pcard__title"><a href="projects/zerotetris.html">ZeroTetris</a></h3>
+          <p class="pcard__meta">HLMC 28nm tape-out · 2023.09 – 2025.06</p>
+          <ul class="pcard__points">
+            <li><span data-lang="zh">die 3.18 mm²，常温能效 9.01 TOPS/W</span><span data-lang="en">3.18 mm² die, 9.01 TOPS/W at room temperature</span></li>
+            <li><span data-lang="zh">100 MHz 下完成 800×800 整图渲染，PSNR 42.59 dB</span><span data-lang="en">Full 800×800 render at 100 MHz, PSNR 42.59 dB</span></li>
+            <li><span data-lang="zh">深低温平台最低 −167 °C；最优能效 26.84 TOPS/W @ −100 °C</span><span data-lang="en">Cryogenic platform down to −167 °C; best efficiency 26.84 TOPS/W at −100 °C</span></li>
+          </ul>
+          <div class="pcard__foot">
+            <span class="badge badge--silicon"><span data-lang="zh">硅上实测</span><span data-lang="en">silicon</span></span>
+            <a class="btn-mini" href="projects/zerotetris.html"><span data-lang="zh">详情 →</span><span data-lang="en">Details →</span></a>
+          </div>
+        </div>
+      </article>
+
+
+
+      <article class="pcard">
+        <div class="pcard__body">
+          <h3 class="pcard__title"><a href="projects/ff-hw.html">FF_HW</a></h3>
+          <p class="pcard__meta">π³ / YoNoSplat inference accelerator · Alveo V80 + 28nm · 2026.04 –</p>
+          <ul class="pcard__points">
+            <li><span data-lang="zh">π³ 上 W8A8 / W6A6 双指标无损（点图重建 + 相机位姿）</span><span data-lang="en">W8A8 / W6A6 lossless on both metrics for π³ (point map and camera pose)</span></li>
+            <li><span data-lang="zh">双档可参数化脉动阵列，28nm 综合 slack = 0</span><span data-lang="en">Two-tier parameterizable systolic array, slack = 0 in 28nm synthesis</span></li>
+            <li><span data-lang="zh">operand-split 打包将每 PE 的 DSP 占用减半</span><span data-lang="en">Operand-split packing halves DSP usage per PE</span></li>
+          </ul>
+          <div class="pcard__foot">
+            <span class="badge badge--synth"><span data-lang="zh">综合 + 上板</span><span data-lang="en">synthesis + board</span></span>
+            <a class="btn-mini" href="projects/ff-hw.html"><span data-lang="zh">详情 →</span><span data-lang="en">Details →</span></a>
+          </div>
+        </div>
+      </article>
+
+      <article class="pcard">
+        <div class="pcard__body">
+          <h3 class="pcard__title">
+            <a href="projects/edge3dgs.html"><span data-lang="zh">端侧 3DGS 训练加速器</span><span data-lang="en">On-device 3DGS Training Accelerator</span></a>
+          </h3>
+          <p class="pcard__meta">System architecture · Alveo V80 + 28nm · 2025.11 –</p>
+          <ul class="pcard__points">
+            <li><span data-lang="zh">七功能块划分、独立时钟域、host 中介式控制面</span><span data-lang="en">Seven functional blocks, independent clock domains, host-mediated control plane</span></li>
+            <li><span data-lang="zh">排序协处理器片上 SRAM 面积降低 4.57×，算法未作改动</span><span data-lang="en">On-chip SRAM area of the sort coprocessor reduced by 4.57× without algorithmic change</span></li>
+            <li><span data-lang="zh">上板实现 3DGS 完整训练闭环，PSNR 与 RTX 4090 基线持平</span><span data-lang="en">Complete 3DGS training loop realized on board, with PSNR on par with the RTX 4090 baseline</span></li>
+          </ul>
+          <div class="pcard__foot">
+            <span class="badge badge--synth"><span data-lang="zh">综合 + 上板</span><span data-lang="en">synthesis + on board</span></span>
+            <a class="btn-mini" href="projects/edge3dgs.html"><span data-lang="zh">详情 →</span><span data-lang="en">Details →</span></a>
+          </div>
+        </div>
+      </article>
+
+      <article class="pcard">
+        <img class="pcard__cover" src="assets/img/projects/zeroblade/cover.jpg" width="1090" height="613" loading="lazy" alt="ZeroBlade">
+        <div class="pcard__body">
+          <h3 class="pcard__title"><a href="projects/zeroblade.html">ZeroBlade</a></h3>
+          <p class="pcard__meta">HiSparse MLP engine · HAPS-80 + 28nm · 2024.06 – 2025.11</p>
+          <ul class="pcard__points">
+            <li><span data-lang="zh">HiSparse 层级稀疏框架，精度与吞吐可配置</span><span data-lang="en">HiSparse hierarchical sparsity framework with configurable accuracy–throughput operating points</span></li>
+            <li><span data-lang="zh">HAPS-80 原型 200 MHz，PSNR 29.91 dB</span><span data-lang="en">HAPS-80 prototype at 200 MHz, PSNR 29.91 dB</span></li>
+            <li><span data-lang="zh">28nm 综合 1.284 mm² / 102.8 mW / 24.55 TOPS/W</span><span data-lang="en">28nm synthesis: 1.284 mm² / 102.8 mW / 24.55 TOPS/W</span></li>
+          </ul>
+          <div class="pcard__foot">
+            <span class="badge badge--synth"><span data-lang="zh">综合 + 原型</span><span data-lang="en">synthesis + prototype</span></span>
+            <a class="btn-mini" href="projects/zeroblade.html"><span data-lang="zh">详情 →</span><span data-lang="en">Details →</span></a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ==================== 技能 ==================== -->
+  <section class="section" id="skills">
+    <div class="section__head">
+      <h2><span data-lang="zh">专业技能</span><span data-lang="en">Skills</span></h2>
+      <span class="en-label" data-lang="zh">Skills</span>
+      <span class="en-label" data-lang="en">专业技能</span>
+    </div>
+
+    <div class="skills">
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">推理加速</span><span data-lang="en">Inference</span></div>
+        <div class="entry__body">
+          <span data-lang="zh">具备推理加速器完整设计链路的实践经验。独立完成过 INT8 / FP8 量化方案的确定（W8A8 / W6A6 / W4A8 PTQ 管线与双指标精度闭环，硬件侧落到激活 FP8 E4M3、权重 INT8 与非线性单元全整数实现）。熟悉脉动阵列 GEMM 与 dataflow 选型、Attention 与 Flash-Attention 数据通路设计、稀疏加速。了解 KV-cache 与 recurrent-state 管理、MoE 权重摊销、Prefill-Decode 分离部署、HBM 带宽的 Roofline 分析，以及 GPTQ、AWQ、SmoothQuant 等量化与稀疏方案。</span>
+          <span data-lang="en">Practical experience across the full design path of an inference accelerator. Independently determined INT8 and FP8 quantization schemes (W8A8 / W6A6 / W4A8 PTQ pipelines with dual-metric accuracy closure, landing in hardware as FP8 E4M3 activations, INT8 weights and all-integer non-linear units). Familiar with systolic-array GEMM and dataflow selection, attention and flash-attention datapath design, and sparsity acceleration. Working knowledge of KV-cache and recurrent-state management, MoE weight amortization, prefill–decode disaggregation, roofline analysis of HBM bandwidth, and quantization and sparsity methods including GPTQ, AWQ and SmoothQuant.</span>
+        </div>
+      </div>
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">系统架构</span><span data-lang="en">Architecture</span></div>
+        <div class="entry__body">
+          <span data-lang="zh">具备多协处理器 SoC 的架构划分与集成经验：功能块切分、时钟域规划、HBM 通道分配、NoC 互联与 host 中介式控制面设计。掌握面积-性能权衡方法，包括有界化与溢出路径、时分复用折叠、按速率 right-size 与单端口化。</span>
+          <span data-lang="en">Partitioning and integration of multi-coprocessor SoCs: functional block decomposition, clock-domain planning, HBM channel allocation, NoC interconnect and host-mediated control planes; area–performance tradeoff methods (bounded buffers with spill paths, time-multiplex folding, rate-based right-sizing, single-porting).</span>
+        </div>
+      </div>
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">硬件设计</span><span data-lang="en">RTL design</span></div>
+        <div class="entry__body">
+          <span data-lang="zh">熟练使用 SpinalHDL / Scala 与 Verilog / SystemVerilog 编写 RTL，累计 10 万行量级的 RTL 经验。熟悉深流水设计、跨时钟域处理、AXI3 / AXI4 总线与 DMA 通路设计。</span>
+          <span data-lang="en">Proficient in RTL design with SpinalHDL / Scala and Verilog / SystemVerilog, with roughly 100K lines of RTL cumulatively. Deep pipelining, clock-domain crossing, AXI3 / AXI4 bus and DMA datapath design.</span>
+        </div>
+      </div>
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">验证方法</span><span data-lang="en">Verification</span></div>
+        <div class="entry__body">
+          <span data-lang="zh">熟练使用 SpinalSim + VCS、Verilator 与 cocotb 搭建验证环境。掌握 bit-exact 回归、定点 golden 对拍、以冲激响应定位流水线错位等验证方法。</span>
+          <span data-lang="en">Verification environments built with SpinalSim + VCS, Verilator and cocotb. Methods include bit-exact regression, fixed-point golden comparison, and impulse-response probing to localize pipeline misalignment.</span>
+        </div>
+      </div>
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">ASIC 后端</span><span data-lang="en">ASIC backend</span></div>
+        <div class="entry__body">
+          <span data-lang="zh">独立完成 Synopsys DC 28nm 综合全流程，含 SRAM 编译器使用、大宏 MMC 面积核算与 µm²/bit 密度校验；熟悉 ICC2 与 PrimeTime。具备 GHz 级高频模块综合、频率-面积折衷分析与基于 report_power 的能效核算经验，以及 HLMC 28nm 完整流片与芯片实测经验。</span>
+          <span data-lang="en">Independently completed the full Synopsys DC 28nm synthesis flow, including SRAM compiler use, macro MMC area accounting and µm²/bit density verification; familiar with ICC2 and PrimeTime. Experience with GHz-class block synthesis, frequency–area tradeoff analysis, report_power-based efficiency accounting, and a complete HLMC 28nm tape-out with silicon measurement.</span>
+        </div>
+      </div>
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">FPGA 平台</span><span data-lang="en">FPGA</span></div>
+        <div class="entry__body">
+          <span data-lang="zh">熟悉 AMD Alveo V80（Versal NoC、HBM BLI、QDMA、多时钟域）、VCU128、U250 与 Synopsys HAPS-80 原型平台。熟练使用 Vivado 全流程，具备 DSP 资源折衷、时序收敛、XDC 约束编写与 IP 依赖隔离的经验。</span>
+          <span data-lang="en">Familiar with the AMD Alveo V80 (Versal NoC, HBM BLI, QDMA, multiple clock domains), VCU128, U250 and the Synopsys HAPS-80 prototyping platform. Proficient in the full Vivado flow, with experience in DSP resource tradeoffs, timing closure, XDC constraint authoring and IP dependency isolation.</span>
+        </div>
+      </div>
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">编程语言</span><span data-lang="en">Languages</span></div>
+        <div class="entry__body">
+          <div class="tag-row">
+            <span class="tag">C / C++</span>
+            <span class="tag">CUDA</span>
+            <span class="tag">Python / PyTorch</span>
+            <span class="tag">SpinalHDL / Scala</span>
+            <span class="tag">Verilog / SystemVerilog</span>
+            <span class="tag">TCL / Shell</span>
+            <span class="tag">Linux</span>
+            <span class="tag">Git</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-row">
+        <div class="skill-row__label"><span data-lang="zh">AI 辅助开发</span><span data-lang="en">AI-assisted</span></div>
+        <div class="entry__body">
+          <span data-lang="zh">在 RTL 设计与验证中系统性地使用 Claude Code，形成了一套适用于硬件项目的工作流程：先完成设计规格文档，再由模型生成实现，正确性由 bit-exact 对拍、逐算子 A/B 验证与回归门禁保证。架构决策、验证策略与硅上问题定位仍由本人完成。该流程显著扩大了单人可承担的项目规模。</span>
+          <span data-lang="en">Systematic use of Claude Code in RTL design and verification, following a workflow adapted to hardware projects: the design specification is written first, implementation is generated by the model, and correctness is enforced by bit-exact comparison, per-operator A/B validation and regression gating. Architectural decisions, verification strategy and silicon debug remain my own. This workflow has substantially increased the project scale a single engineer can carry.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== 其他 ==================== -->
+  <section class="section section--tint" id="additional">
+    <div class="section__head">
+      <h2><span data-lang="zh">综合素质</span><span data-lang="en">Additional</span></h2>
+      <span class="en-label" data-lang="zh">Additional</span>
+      <span class="en-label" data-lang="en">综合素质</span>
+    </div>
+    <ul class="entry__body">
+      <li>
+        <span data-lang="zh">研究生阶段专业课绩点均为 4.0；担任信号与系统等课程助教</span>
+        <span data-lang="en">4.0 in every graduate specialty course; teaching assistant for Signals &amp; Systems</span>
+      </li>
+      <li>
+        <span data-lang="zh">曾任校学生会主席；本科校篮球队队长，初中获市运会篮球项目银牌</span>
+        <span data-lang="en">Former president of the student union; captain of the university basketball team as an undergraduate, and a silver medal at the municipal games in middle school</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ==================== 联系 ==================== -->
+  <section class="section" id="contact">
+    <div class="section__head">
+      <h2><span data-lang="zh">联系</span><span data-lang="en">Contact</span></h2>
+      <span class="en-label" data-lang="zh">Contact</span>
+      <span class="en-label" data-lang="en">联系</span>
+    </div>
+    <p class="entry__body" style="margin-bottom:1rem">
+      <span data-lang="zh">欢迎就推理加速器架构与算法-硬件协同设计相关的研究合作或技术问题来信。</span>
+      <span data-lang="en">I welcome correspondence regarding research collaboration or technical questions on inference accelerator architecture and algorithm–hardware co-design.</span>
+    </p>
+    <div class="social">
+      <a href="mailto:liat2023@shanghaitech.edu.cn">liat2023@shanghaitech.edu.cn</a>
+      <a href="https://scholar.google.com/citations?user=GFJ1pa4AAAAJ" rel="me noopener"><span data-lang="zh">Google 学术</span><span data-lang="en">Google Scholar</span></a>
+      <a href="https://orcid.org/0009-0008-7030-0355" rel="me noopener">ORCID 0009-0008-7030-0355</a>
+      <a href="assets/pdf/cv-zh.pdf"><span data-lang="zh">简历 PDF</span><span data-lang="en">CV (PDF)</span></a>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> <span data-lang="zh">李安童 Antong Li</span><span data-lang="en">Antong Li</span></span>
+  </div>
+</footer>
+
+<script src="assets/js/site.js" defer></script>
+</body>
+</html>

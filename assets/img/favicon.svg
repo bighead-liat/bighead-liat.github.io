@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Antong Li">
+  <rect width="64" height="64" rx="13" fill="#1f4a7d"/>
+  <path fill="#ffffff" fill-rule="evenodd"
+        d="M32 13 L48 51 L39.8 51 L36.6 43 L27.4 43 L24.2 51 L16 51 Z
+           M32 26 L28.6 37 L35.4 37 Z"/>
+</svg>

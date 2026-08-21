@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FF_HW — π³ 前馈 3D 重建推理加速器 · 李安童 Antong Li</title>
+<meta name="description" content="FF_HW：面向 π³ 类前馈 3D 重建大模型的专用推理加速器。量化方案、脉动阵列架构、RTL 实现与 Alveo V80 上板验证独立完成。">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<meta property="og:image" content="https://bighead-liat.github.io/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+
+<script>
+(function () {
+  var d = document.documentElement;
+  try {
+    var l = localStorage.getItem('liat-site-lang');
+    if (l !== 'zh' && l !== 'en') l = /^zh\b/i.test(navigator.language || '') ? 'zh' : 'en';
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l === 'zh' ? 'zh-CN' : 'en');
+    var t = localStorage.getItem('liat-site-theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    d.setAttribute('data-theme', t);
+  } catch (e) { d.setAttribute('data-theme', 'light'); }
+})();
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main"><span data-lang="zh">跳到主内容</span><span data-lang="en">Skip to content</span></a>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__brand" href="../index.html"><span data-lang="zh">李安童</span><span data-lang="en">Antong Li</span></a>
+    <div class="nav__links">
+      <a href="../index.html#about"><span data-lang="zh">简介</span><span data-lang="en">About</span></a>
+      <a href="../index.html#publications"><span data-lang="zh">论文</span><span data-lang="en">Publications</span></a>
+      <a href="../index.html#projects"><span data-lang="zh">项目</span><span data-lang="en">Projects</span></a>
+      <a href="../index.html#contact"><span data-lang="zh">联系</span><span data-lang="en">Contact</span></a>
+    </div>
+    <div class="nav__tools">
+      <button class="icon-btn" id="lang-toggle" type="button" aria-label="Switch language">EN</button>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme">☾</button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="wrap">
+
+  <p class="crumb">
+    <a href="../index.html#projects"><span data-lang="zh">← 返回项目列表</span><span data-lang="en">← Back to projects</span></a>
+  </p>
+
+  <header class="page-head">
+    <h1>FF_HW</h1>
+    <div class="page-head__meta">
+      <span>2026.04 – <span data-lang="zh">至今</span><span data-lang="en">present</span></span>
+      <span data-lang="zh">独立负责人</span><span data-lang="en">Sole owner</span>
+      <span>AMD Alveo V80 + 28nm</span>
+      <span>17K SpinalHDL + 4.9K Python</span>
+    </div>
+    <p class="page-head__lede">
+      <span data-lang="zh">面向 π³ (Pi3) 类前馈 3D 重建大模型的专用推理加速器。从量化方案确定、脉动阵列架构，到 RTL 实现与 FPGA 上板验证，全部由本人独立完成。</span>
+      <span data-lang="en">A dedicated inference accelerator for π³ (Pi3)-class feed-forward 3D reconstruction models. Everything from the quantization scheme and systolic-array architecture through RTL implementation and FPGA validation was carried out independently by me.</span>
+    </p>
+    <div class="tag-row">
+      <span class="tag tag--accent">INT8 PTQ</span>
+      <span class="tag">Systolic array</span>
+      <span class="tag">Flash-attention</span>
+      <span class="tag">SpinalHDL</span>
+      <span class="tag">Synopsys DC 28nm</span>
+    </div>
+  </header>
+
+  <!-- ---------- 我的边界 ---------- -->
+  <section class="psection" style="border-top:0;padding-top:0">
+    <div class="scope">
+      <h3><span data-lang="zh">我的边界</span><span data-lang="en">Scope of my contribution</span></h3>
+      <dl>
+        <dt><span data-lang="zh">独立完成</span><span data-lang="en">Solely mine</span></dt>
+        <dd>
+          <span data-lang="zh">全部内容：量化管线、架构定档、RTL、综合与上板验证。该项目仓库没有第二位作者。</span>
+          <span data-lang="en">All of it: the quantization pipeline, architectural sizing, RTL, synthesis and board-level validation. The repository has no second author.</span>
+        </dd>
+
+        <dt class="is-out"><span data-lang="zh">PPA 数字的性质</span><span data-lang="en">What the PPA numbers are</span></dt>
+        <dd>
+          <span data-lang="zh">unit 级的面积与频率来自 DC 实测报告；32×32 全引擎已可经 SRAM 宏黑盒流程一键生成 ASIC 网表，但<strong>更大档位的面积与功耗仍为外推结果，并非签核数据</strong>。二者不应混同。</span>
+          <span data-lang="en">Unit-level area and frequency come from actual DC reports, and the 32×32 full engine already generates an ASIC netlist in one pass through an SRAM macro black-box flow. Figures for <strong>larger configurations remain extrapolations rather than signed-off results</strong>. The two must not be conflated.</span>
+        </dd>
+
+        <dt><span data-lang="zh">上板验证的范围</span><span data-lang="en">What has actually run on hardware</span></dt>
+        <dd>
+          <span data-lang="zh">整网 <strong>75 个 Transformer 块已全部在 V80 上运行</strong>；逐字节一致的结论覆盖帧内块、分块作业与全长输出三类作业集，计数见下文。ASIC 侧止于综合与网表生成，<strong>未流片</strong>。</span>
+          <span data-lang="en">All <strong>75 transformer blocks of the network now run on V80</strong>. The byte-exact result covers three job sets, intra-frame blocks, tile jobs and full-length outputs, with counts given below. On the ASIC side the work stops at synthesis and netlist generation; it <strong>has not been taped out</strong>.</span>
+        </dd>
+
+        <dt class="is-out"><span data-lang="zh">Attention 核的来源</span><span data-lang="en">Where the attention core came from</span></dt>
+        <dd>
+          <span data-lang="zh">移植自本人此前的 FlashAttention 竞赛 RTL。<strong>新增部分</strong>是 256 lane 重新并行化、π³ 行分数的位精确对齐、INT8 输出驻留与归一化单元。</span>
+          <span data-lang="en">Ported from my own earlier FlashAttention competition RTL. <strong>What is new here</strong>: re-parallelization to 256 lanes, bit-exact alignment against real π³ row scores, INT8 output stationarity and the normalizer unit.</span>
+        </dd>
+      </dl>
+    </div>
+
+    <div class="note">
+      <strong><span data-lang="zh">关于具体数值。</span><span data-lang="en">On specific numbers.</span></strong>
+      <span data-lang="zh">本项目为<strong>公司在研内容</strong>，绝对面积、功耗、能效与 FPGA 资源占用不在公开页面披露。本页保留的是设计方法、判断依据、本人分工，以及不含绝对量纲的比值，均不涉及未公开的产品指标。相关细节可在合规范围内于面试中展开。</span>
+      <span data-lang="en">This project is <strong>ongoing work at my employer</strong>. Absolute area, power, efficiency and FPGA resource counts are therefore not disclosed here. What remains is the design method, the reasoning behind each decision, the scope of my own contribution, and ratios carrying no absolute magnitude, none of which touch unreleased product figures. Further detail can be discussed in an interview within permissible limits.</span>
+    </div>
+  </section>
+
+  <!-- ---------- 量化方案 ---------- -->
+  <section class="psection" id="quant">
+    <h2><span data-lang="zh">量化方案确定</span><span data-lang="en">Fixing the quantization contract</span></h2>
+
+    <p>
+      <span data-lang="zh">自行搭建了一套训练后量化 (PTQ) 管线，在 <strong>π³-Large</strong> 上评估精度。此处的一个关键选择是采用<strong>双指标闭环</strong>，即同时考察点图重建质量与相机位姿精度。仅依据重建指标会遗漏问题：位姿通路对量化最为敏感，重建指标正常而位姿精度已明显劣化的情形确有发生。</span>
+      <span data-lang="en">I built a post-training quantization (PTQ) pipeline and evaluated accuracy on <strong>π³-Large</strong>. One choice was decisive here: closing the loop on <strong>two metrics</strong>, point-map reconstruction quality and camera pose accuracy. Reconstruction alone conceals problems, since the pose path is the most quantization-sensitive part of these models and can degrade appreciably while reconstruction still appears intact.</span>
+    </p>
+
+    <p style="margin-top:.9rem">
+      <span data-lang="zh">在 7-Scenes 子集上的评估结果表明，<strong>W8A8 与 W6A6 两档在双指标上均无损失</strong>；W4A8 在纯 PTQ 条件下位姿精度出现小幅退化，重建指标基本持平。位姿通路在 W8A8 / W6A6 下同样无损这一结论具有独立的参考价值 <span class="badge badge--sim"><span data-lang="zh">实测评估</span><span data-lang="en">evaluated</span></span>。</span>
+      <span data-lang="en">Evaluated on a 7-Scenes subset, <strong>W8A8 and W6A6 are lossless on both metrics</strong>, while pure-PTQ W4A8 incurs a small loss of pose accuracy with reconstruction holding approximately flat. That the pose path survives W8A8 and W6A6 intact is a result of independent interest <span class="badge badge--sim">evaluated</span>.</span>
+    </p>
+
+    <p>
+      <span data-lang="zh">最终落到硬件的方案为<strong>激活 FP8 E4M3、权重 INT8，softmax / LayerNorm / GELU 全部整数实现</strong>。激活选用 FP8 是因其动态范围问题最为突出；非线性单元一律走整数，目的是使 Python 定点参考模型与 RTL 保持<strong>逐位一致</strong>——只要保留一个浮点算子，这条对拍链即告中断。</span>
+      <span data-lang="en">The scheme that reached hardware uses <strong>FP8 E4M3 activations, INT8 weights, and all-integer softmax, LayerNorm and GELU</strong>. Activations take FP8 because dynamic range is their dominant difficulty; the non-linear units are integer throughout so that the Python fixed-point reference model and the RTL remain <strong>bit-identical</strong>. Retaining a single floating-point operator would break that comparison chain.</span>
+    </p>
+
+    <h3><span data-lang="zh">整数通路的精度损失由后训练吸收</span><span data-lang="en">Post-training absorbs the quantization loss</span></h3>
+
+    <p>
+      <span data-lang="zh">在 YoNoSplat 前馈 3DGS 全流程上做了 11 个场景的端到端评测。整数前馈直出相对 FP32 存在可观差距，但该管线本就要接后训练：<strong>约 300 轮后差距已收敛至十分之一量级，2000 轮后进一步缩小，其中 5 个场景反超 FP32</strong>。这一结论决定了量化档位可以定得比直觉更激进——若仅依据前馈直出的差距判断，会误判为必须保留浮点 <span class="badge badge--sim"><span data-lang="zh">软件评估</span><span data-lang="en">evaluated</span></span>。</span>
+      <span data-lang="en">An end-to-end evaluation over 11 scenes was run on the full YoNoSplat feed-forward 3DGS pipeline. Raw integer feed-forward output sits appreciably below FP32, but this pipeline runs post-training regardless: <strong>after roughly 300 rounds the gap has closed by an order of magnitude, it narrows further by 2,000 rounds, and 5 of the scenes overtake FP32</strong>. This is what permits a more aggressive quantization setting than intuition suggests; judging from the raw feed-forward gap alone would wrongly imply that floating point has to stay <span class="badge badge--sim">evaluated</span>.</span>
+    </p>
+
+    <figure class="figure-wide">
+      <img src="../assets/img/projects/ff-hw/posttrain-scenes.jpg" width="1400" height="881" loading="lazy"
+           data-full="../assets/img/projects/ff-hw/posttrain-scenes-full.jpg"
+           data-lightbox alt="Feed-forward output versus post-training across scenes">
+      <figcaption>
+        <span data-lang="zh">前馈直出、后训练各档与 GT 的逐场景对照，此处节选 4 个场景，点开为完整的 11 个场景。</span>
+        <span data-lang="en">Feed-forward output, successive post-training settings and ground truth, scene by scene. Four scenes are shown here; the full set of eleven opens on click.</span>
+      </figcaption>
+    </figure>
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<figure class="figure-wide">
+      <img src="../assets/img/projects/ff-hw/quant-accuracy.png" width="1200" height="900" loading="lazy"
+           data-lightbox alt="Quantization accuracy">
+      <figcaption>
+        <span data-lang="zh">各量化档位下的点图与位姿双指标。</span>
+        <span data-lang="en">Point-map and pose metrics across quantization settings.</span>
+      </figcaption>
+    </figure>
+-->
+  </section>
+
+  <!-- ---------- 架构 ---------- -->
+  <section class="psection" id="arch">
+    <h2><span data-lang="zh">阵列架构与定档</span><span data-lang="en">Array architecture and sizing</span></h2>
+
+    <p>
+      <span data-lang="zh">阵列规模由分析模型确定，而非经验估计。模型表明该网络<strong>全程 GEMM-bound 而非访存受限</strong>：在相同输入下，GEMM 耗时较访存高出一个数量级。既然瓶颈在算力，面积预算即应向阵列倾斜。据此确定了 <strong>R×C 可参数化的描述符驱动层级流水引擎</strong>：多个阵列档位共用同一份 RTL，换档仅调整参数而不分叉代码，因而每一档均可独立上板或独立综合，无需维护多套实现。</span>
+      <span data-lang="en">The array size was determined analytically rather than by estimation. A model first established that this network is <strong>GEMM-bound throughout rather than memory-bound</strong>: on the same inputs, GEMM time exceeds memory traffic time by an order of magnitude. Since compute is the bottleneck, the area budget belongs in the array. This fixed a <strong>parameterizable R×C, descriptor-driven hierarchical pipeline</strong>: the array configurations share a single RTL source, so changing configuration adjusts parameters rather than forking the code, and each configuration can be brought up or synthesized independently without maintaining several implementations.</span>
+    </p>
+
+    <p>
+      <span data-lang="zh">配套设计了同宽度的 LayerNorm 与 GELU 向量单元。softmax 的吞吐目标由阵列的消费速率反推确定，其约束条件是 softmax 不得成为新的瓶颈。</span>
+      <span data-lang="en">Alongside it are LayerNorm and GELU vector units of matching width. The softmax throughput target was derived backwards from the consumption rate of the array under a single constraint: softmax must not become the new bottleneck.</span>
+    </p>
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<figure class="figure-wide">
+      <img src="../assets/img/projects/ff-hw/arch.png" width="1600" height="900" loading="lazy"
+           data-lightbox alt="FF_HW architecture">
+      <figcaption>
+        <span data-lang="zh">架构框图：脉动阵列 GEMM、attention 核与向量单元。</span>
+        <span data-lang="en">Block diagram: systolic GEMM array, attention core and vector units.</span>
+      </figcaption>
+    </figure>
+-->
+  </section>
+
+  <!-- ---------- 28nm 综合 ---------- -->
+  <section class="psection" id="synth">
+    <h2><span data-lang="zh">28nm 综合实证：目标频率够得着</span><span data-lang="en">28nm synthesis: the target frequency is reachable</span></h2>
+
+    <p>
+      <span data-lang="zh">为确认高频目标可实际达成而非仅为标称值，在 28nm 上对若干关键单元执行了 unit 级综合，包括 GEMM 阵列、AttnRowCore 与 RopeUnit，约束采用悲观 corner（Synopsys DC，SS 0.81 V / 125 °C）。三个单元均在目标周期下收敛，其中 GEMM 阵列为 <strong>slack = 0</strong>，即恰好满足约束。该路径不存在时序余量，构成了后续全部规模选型的硬约束 <span class="badge badge--synth">DC</span>。能效锚点取自 <code>report_power</code>，同一口径 <span class="badge badge--synth">report_power</span>。</span>
+      <span data-lang="en">To establish that the high-frequency target was attainable rather than merely nominal, I ran unit-level synthesis of the key blocks in 28nm: the GEMM array, AttnRowCore and RopeUnit, constrained at a pessimistic corner (Synopsys DC, SS 0.81 V / 125 °C). All three close at the target period, with the GEMM array at <strong>slack = 0</strong>, exactly meeting the constraint. That path carries no timing margin and constitutes the hard constraint behind every downstream sizing decision <span class="badge badge--synth">DC</span>. The efficiency anchor comes from <code>report_power</code> on the same basis <span class="badge badge--synth">report_power</span>.</span>
+    </p>
+
+    <div class="note">
+      <strong><span data-lang="zh">口径说明。</span><span data-lang="en">On provenance.</span></strong>
+      <span data-lang="zh">unit 级的面积、周期与功耗都是 DC 实测报告。<strong>整引擎的面积与功耗则是标准单元回归外推加实测宏拼出来的，不是签核数据</strong>，不应解读为该加速器已经实现。绝对数值按上方说明不在本页披露 <span class="badge badge--extrap"><span data-lang="zh">回归外推</span><span data-lang="en">extrapolated</span></span>。</span>
+      <span data-lang="en">Unit-level area, period and power are all actual DC reports. The <strong>full-engine area and power, by contrast, are a standard-cell regression extrapolation combined with measured macros — not signed-off data</strong>, and should not be read as evidence that such an accelerator has been built. Absolute values are withheld for the reason given above <span class="badge badge--extrap">extrapolated</span>.</span>
+    </div>
+
+    <h3><span data-lang="zh">频率-面积折衷</span><span data-lang="en">The frequency–area tradeoff</span></h3>
+    <p>
+      <span data-lang="zh">在同一阵列上将时序约束收紧一倍，面积仅增加 <strong>1.42×</strong>，即<strong>以 1.42× 的面积换取 2× 的频率</strong>。该曲线使得是否提高工作频率由主观取舍转变为可量化的决策。</span>
+      <span data-lang="en">Tightening the timing constraint by 2× on the same array increases area by only <strong>1.42×</strong>: <strong>1.42× the area buys 2× the frequency</strong>. With this curve established, whether to push for higher frequency ceases to be a matter of preference and becomes a quantifiable decision.</span>
+    </p>
+    <p>
+      <span data-lang="zh">大宏采用<strong>双 bank 交错</strong>：两个 bank 各运行于一半频率，通过错相访问获得全速的等效吞吐。当单个宏无法满足目标频率时，采用两个低速宏错相访问的代价低于更换高速宏。</span>
+      <span data-lang="en">The large macros use <strong>dual-bank interleaving</strong>: two banks each running at half the frequency, accessed out of phase to yield full-rate effective throughput. Where a single macro cannot meet the target frequency, two lower-speed macros accessed out of phase cost less than substituting a faster one.</span>
+    </p>
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<figure class="figure-wide">
+      <img src="../assets/img/projects/ff-hw/freq-area.png" width="1200" height="900" loading="lazy"
+           data-lightbox alt="Frequency vs area tradeoff">
+      <figcaption>
+        <span data-lang="zh">32×32 阵列的频率-面积折衷曲线。</span>
+        <span data-lang="en">Frequency–area tradeoff for the 32×32 array.</span>
+      </figcaption>
+    </figure>
+-->
+  </section>
+
+  <!-- ---------- Attention 核 ---------- -->
+  <section class="psection" id="attn">
+    <h2><span data-lang="zh">Attention 核</span><span data-lang="en">Attention core</span></h2>
+    <p>
+      <span data-lang="zh">将本人此前竞赛作品中的 FlashAttention RTL 移植至此，并按 256 lane 重新并行化。在线 softmax 的 m/l 递推、exp 查表与 α 重标度等机制均予保留。累加位宽沿用原设计中<strong>可证明下界</strong>的结论（d = 64 对应 37 bit）；该结论可直接复用，是因为 π³ 的 d_head 同为 64。</span>
+      <span data-lang="en">I ported the FlashAttention RTL from my earlier competition entry and re-parallelized it to 256 lanes. The m/l recurrence of online softmax, the exp lookup and α rescaling all carry over. The accumulator width reuses the <strong>provable lower bound</strong> established in the original design, 37 bits for d = 64; that result transfers directly because π³ also uses d_head = 64.</span>
+    </p>
+    <p>
+      <span data-lang="zh">行核端到端 bit-exact，相对浮点 attention 误差 <strong>0.091%</strong>。</span>
+      <span data-lang="en">The row core is bit-exact end to end, with <strong>0.091%</strong> error against float attention.</span>
+    </p>
+
+    <p>
+      <span data-lang="zh">此处真正决定耗时的是访存安排而非算力。令 <strong>K/V 跨查询块驻留</strong>，即同一份 K/V 服务完全部查询块后再行替换，单块周期数降至原先的 <strong>约六分之一</strong>；该优化未改动任何乘法器，节省的全部来自重复搬运。</span>
+      <span data-lang="en">What governs runtime here is the memory schedule rather than arithmetic. Making <strong>K/V resident across query blocks</strong>, so that one copy of K/V serves every query block before being replaced, reduced the per-block cycle count to roughly <strong>one sixth</strong>. No multiplier changed; the saving is entirely eliminated re-fetching.</span>
+    </p>
+    <p>
+      <span data-lang="zh">另一项是 <strong>K/V 分窗流式两遍计算</strong>：引擎的 token 容量固定，但经分窗两遍后，长度远超该容量的全局注意力仍可单遍走完且<strong>无需重算分数</strong>，代价为逻辑资源增加 <strong>0.2%</strong>。以 0.2% 的逻辑规避「放大引擎或重算分数」这一二选一，是本版中性价比最高的一处改动。</span>
+      <span data-lang="en">The second is <strong>windowed two-pass streaming over K/V</strong>: the engine has a fixed token capacity, yet with windowing across two passes, global attention far longer than that capacity still completes in a single sweep with <strong>no score recomputation</strong>, at a cost of <strong>0.2%</strong> additional logic. Spending 0.2% of logic to avoid the choice between enlarging the engine and recomputing scores is the best-value change in this revision.</span>
+    </p>
+  </section>
+
+  <!-- ---------- DSP 优化 ---------- -->
+  <section class="psection" id="dsp">
+    <h2><span data-lang="zh">DSP 资源优化：以 LUT 换 DSP</span><span data-lang="en">Trading LUTs for DSPs</span></h2>
+    <p>
+      <span data-lang="zh">在 V80 上 DSP 构成硬约束：直接实现 32×32 分块时 DSP58 占用<strong>超过 100%</strong>，设计无法布下。</span>
+      <span data-lang="en">On V80, DSP is the hard constraint: a direct 32×32 tile pushes DSP58 utilization <strong>past 100%</strong>, leaving the design unimplementable.</span>
+    </p>
+    <p>
+      <span data-lang="zh">解决方法是 <strong>operand-split 打包</strong>：将两路窄位宽乘法合入一个 DSP58 的宽乘法器，拆分与修正的代价由 LUT 承担。在相同几何与相同流程下，阵列<strong>每 PE 的 DSP 数由 2.0 降至 1.0</strong>，整体 DSP 占用<strong>减半</strong>，该方案由此具备可实现性。</span>
+      <span data-lang="en">The remedy is <strong>operand-split packing</strong>: two narrow multiplies are fitted into one DSP58 wide multiplier, with the split and correction paid for in LUTs. Under identical geometry and flow, <strong>DSP-per-PE falls from 2.0 to 1.0</strong> and overall DSP usage <strong>halves</strong>, rendering the tile implementable.</span>
+    </p>
+    <p>
+      <span data-lang="zh">此外设定了一项工程约束：该特性默认关闭，且<strong>关闭状态下生成的 Verilog 与改动前逐字节一致</strong>。新增可选路径不应对既有基线产生任何隐式扰动。</span>
+      <span data-lang="en">One engineering constraint was imposed: the feature defaults to off, and <strong>with it off the generated Verilog is byte-identical to that produced before the change</strong>. Introducing an optional path must not perturb the existing baseline implicitly.</span>
+    </p>
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<figure class="figure-wide">
+      <img src="../assets/img/projects/ff-hw/asplit-resource.png" width="1200" height="900" loading="lazy"
+           data-lightbox alt="DSP and LUT before and after operand-split">
+      <figcaption>
+        <span data-lang="zh">operand-split 前后的 DSP / LUT 资源对比。</span>
+        <span data-lang="en">DSP and LUT usage before and after operand-split packing.</span>
+      </figcaption>
+    </figure>
+-->
+  </section>
+
+  <!-- ---------- 上板验证 ---------- -->
+  <section class="psection" id="board">
+    <h2><span data-lang="zh">FPGA 上板验证</span><span data-lang="en">FPGA bring-up</span></h2>
+
+    <p>
+      <span data-lang="zh">验证范围已由单条通路推进至整网：<strong>75 个 Transformer 块全部在 V80 上运行</strong>。下表的分母均为全集而非抽样，因此「哪一块尚未验证」这一问题已不存在，剩余分歧只可能位于 ASIC 一侧。</span>
+      <span data-lang="en">Validation has moved from a single path to the whole network: <strong>all 75 transformer blocks run on V80</strong>. Every denominator below is the complete set rather than a sample, so "which block is unverified" is no longer an open question; whatever disagreement remains can only lie on the ASIC side.</span>
+    </p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th><span data-lang="zh">部分</span><span data-lang="en">Part</span></th>
+            <th><span data-lang="zh">上板结果</span><span data-lang="en">On-board result</span></th>
+            <th><span data-lang="zh">口径</span><span data-lang="en">Provenance</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span data-lang="zh">几何引擎</span><span data-lang="en">Geometry engine</span></td>
+            <td class="n"><strong>42/42</strong> <span class="muted"><span data-lang="zh">帧内块逐字节一致，布线后时序收敛</span><span data-lang="en">intra-frame blocks byte-exact, timing closed after routing</span></span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">全局注意力块</span><span data-lang="en">Global attention blocks</span></td>
+            <td class="n"><span data-lang="zh">18 个全部上板</span><span data-lang="en">all 18 on board</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">子解码块</span><span data-lang="en">Sub-decoder blocks</span></td>
+            <td class="n"><span data-lang="zh">10 个全部上板</span><span data-lang="en">all 10 on board</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">逐字节对齐</span><span data-lang="en">Byte-exactness</span></td>
+            <td class="n"><strong>348/348</strong> <span class="muted"><span data-lang="zh">分块作业</span><span data-lang="en">tile jobs</span></span> · <strong>44/44</strong> <span class="muted"><span data-lang="zh">全长输出</span><span data-lang="en">full-length outputs</span></span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></td>
+          </tr>
+          <tr>
+            <td><span data-lang="zh">主机端运行时改批处理后</span><span data-lang="en">After batching the host runtime</span></td>
+            <td class="n"><span data-lang="zh">板侧耗时降至约三分之一</span><span data-lang="en">board-side time cut to about one third</span></td>
+            <td><span class="badge badge--silicon"><span data-lang="zh">上板</span><span data-lang="en">on board</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <span data-lang="zh">排查数据错位时，根因定位于 NoC 侧的 <strong>64 bit 与 256 bit 宽度转换器</strong>。改用 64 bit 从机接口以完全移除该转换器后，问题消失。此类缺陷的共同特征是 RTL 本身正确，故障位于接入总线时引入的适配层。</span>
+      <span data-lang="en">While tracing a data misalignment, the root cause proved to be the <strong>64-bit ↔ 256-bit width converter</strong> on the NoC side. Switching to a 64-bit slave interface removed the converter entirely and the fault disappeared. This class of defect has a characteristic signature: the RTL itself is correct, and the fault resides in an adaptation layer introduced at the bus boundary.</span>
+    </p>
+
+    <!-- 视频待补：暂无可公开的演示片源。
+         有片源后把下面这段取消注释，并按 MEDIA.md 的 ffmpeg 命令压制、生成 poster。
+    <figure class="media-block">
+      <video controls preload="none" width="1600" height="900"
+             poster="../assets/video/ff-hw/v80-bitexact.poster.jpg">
+        <source src="../assets/video/ff-hw/v80-bitexact.mp4" type="video/mp4">
+      </video>
+      <figcaption>
+        <span data-lang="zh">V80 上板 32×32 流式引擎 bit-exact 回归。</span>
+        <span data-lang="en">32×32 streaming engine bit-exact regression on V80.</span>
+      </figcaption>
+    </figure>
+    -->
+
+    <!-- 素材待补：项目进行中，暂无可公开的真实图。
+     有图后把下面这段取消注释即可。
+<div class="gallery">
+      <figure>
+        <img src="../assets/img/projects/ff-hw/v80-board.jpg" width="1200" height="900" loading="lazy"
+             data-lightbox alt="Alveo V80 board">
+        <figcaption><span data-lang="zh">AMD Alveo V80 验证平台</span><span data-lang="en">The AMD Alveo V80 validation platform</span></figcaption>
+      </figure>
+    </div>
+-->
+  </section>
+
+  <nav class="pnav">
+    <a href="../index.html#projects"><span data-lang="zh">← 全部项目</span><span data-lang="en">← All projects</span></a>
+    <a href="edge3dgs.html"><span data-lang="zh">训练侧的对应工作：端侧 3DGS 训练加速器 →</span><span data-lang="en">The training-side counterpart: on-device 3DGS training accelerator →</span></a>
+  </nav>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> <span data-lang="zh">李安童 Antong Li</span><span data-lang="en">Antong Li</span></span>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js" defer></script>
+<script src="../assets/js/lightbox.js" defer></script>
+</body>
+</html>

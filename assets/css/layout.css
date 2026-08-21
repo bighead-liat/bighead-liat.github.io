@@ -1,0 +1,504 @@
+/* ==========================================================================
+   layout.css — 导航、hero、区块、栅格、响应式
+   ========================================================================== */
+
+.wrap {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ---------- 顶部导航 ---------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--nav-h);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.6) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 不支持 color-mix 的浏览器退回不透明背景 */
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  .nav { background: var(--bg); }
+}
+
+.nav__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav__brand {
+  font-weight: 650;
+  color: var(--fg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav__brand:hover {
+  text-decoration: none;
+  color: var(--accent);
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-left: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav__links::-webkit-scrollbar {
+  display: none;
+}
+
+.nav__links a {
+  color: var(--fg-muted);
+  font-size: 0.88rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.nav__links a:hover {
+  color: var(--fg);
+  background: var(--bg-soft);
+  text-decoration: none;
+}
+
+.nav__links a.is-active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.nav__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--border);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 30px;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--bg-soft);
+  color: var(--fg);
+}
+
+/* ---------- 区块 ---------- */
+.section {
+  padding: 2.6rem 0;
+  border-top: 1px solid var(--border-soft);
+  /* 吸顶导航会遮住锚点目标，留出让位 */
+  scroll-margin-top: calc(var(--nav-h) + 12px);
+}
+
+.section:first-of-type {
+  border-top: 0;
+}
+
+.section__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 1.3rem;
+}
+
+.section__head h2 {
+  margin: 0;
+}
+
+.section__head .en-label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* 区块标题的 accent 竖条。原来 h2 只比正文大一号，滚动时区块之间
+   分不出层级；加一条竖线是最省事的锚点，不引入新颜色也不加高度。 */
+.section__head h2,
+.psection > h2 {
+  font-size: 1.55rem;
+  line-height: 1.2;
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--accent);
+}
+
+/* 交替浅底，给长页面一点滚动节奏。
+   用 box-shadow 向左右各铺 100vmax 做出通栏效果，再用 clip-path 把
+   纵向裁回自身高度 —— 这样不必给每个区块套一层全宽容器。
+   box-shadow 不参与布局，所以不会撑出横向滚动条。 */
+.section--tint {
+  background: var(--bg-soft);
+  box-shadow: 0 0 0 100vmax var(--bg-soft);
+  clip-path: inset(0 -100vmax);
+  border-top-color: transparent;
+}
+
+/* ---------- 首屏关键数字 ---------- */
+/* 1px 的 gap 配上容器底色，直接当分隔线用，省掉逐个 border 的接缝问题。 */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 1px;
+  background: var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 0.6rem;
+}
+
+.stat {
+  background: var(--bg);
+  padding: 0.8rem 0.9rem 0.85rem;
+}
+
+.stat__num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.1;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.stat__label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+  margin-top: 0.25rem;
+}
+
+/* 数字带的口径说明。站点其它地方每个数字都标了来源，这里不能例外。 */
+.stats-note {
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+  margin-bottom: 1.7rem;
+}
+
+/* ---------- 首屏实物图 ---------- */
+/* 这三张是佐证材料，不是头条，所以按缩略图处理：定高 96px，
+   靠数量和图注说明「流片了并且亲手测了」，不占视觉权重。
+   之前按 4:3 铺满三列有两个问题：把简介挤出首屏，
+   而且竖构图的 die 显微照被裁掉了上下大半（标注全没了）。 */
+.hero-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.9rem;
+}
+
+/* 定宽小图、左对齐不撑满。撑满通栏的话每张有近 300px 宽，
+   就算压到 96px 高也还是一条很重的横带。 */
+.hero-strip figure {
+  margin: 0;
+  width: 132px;
+}
+
+.hero-strip a {
+  display: block;
+}
+
+.hero-strip img {
+  width: 100%;
+  height: 88px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  transition: border-color 0.15s ease;
+}
+
+.hero-strip a:hover img {
+  border-color: var(--accent);
+}
+
+.hero-strip figcaption {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-faint);
+  margin-top: 0.3rem;
+  line-height: 1.3;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  padding: 2.8rem 0 2.2rem;
+  display: grid;
+  grid-template-columns: 1fr 160px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.hero__name {
+  font-size: 2.1rem;
+  margin-bottom: 0.15rem;
+}
+
+.hero__name .latin {
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--fg-muted);
+  margin-left: 0.5rem;
+}
+
+.hero__role {
+  color: var(--fg-muted);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* 求职状态行：首屏唯一一处主动声明「想做什么、什么时候能来」，
+   所以用 accent 色描边把它从周围的灰字里拎出来。 */
+.hero__status {
+  display: inline-block;
+  font-size: 0.9rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.hero__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.1rem;
+}
+
+.hero__photo {
+  width: 160px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-soft);
+}
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.86rem;
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.65rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.social a:hover {
+  text-decoration: none;
+  color: var(--fg);
+  background: var(--bg-soft);
+}
+
+.social svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+/* ---------- 栅格 ---------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+/* ---------- 页脚 ---------- */
+.footer {
+  border-top: 1px solid var(--border);
+  margin-top: 2.5rem;
+  padding: 1.8rem 0 2.5rem;
+  color: var(--fg-faint);
+  font-size: 0.83rem;
+}
+
+.footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+
+  .hero__photo {
+    width: 128px;
+    height: 160px;
+    order: -1;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  /* 四张定宽小图在 375px 下一行只剩 80px 出头，图注会挤成三行。
+     改成 2×2，靠 flex-wrap 自动折行。 */
+  .hero-strip {
+    gap: 0.45rem;
+  }
+
+  .hero-strip figure {
+    width: calc((100% - 0.45rem) / 2);
+  }
+
+  .hero-strip img {
+    height: 78px;
+  }
+}
+
+@media (max-width: 620px) {
+  body {
+    font-size: 15px;
+  }
+
+  .wrap {
+    padding: 0 1rem;
+  }
+
+  .nav__inner {
+    gap: 0.6rem;
+  }
+
+  /* 窄屏不隐藏导航，改为横向可滚动 —— 隐藏等于丢功能，
+     而 .nav__links 本来就是 overflow-x:auto，这里只需让它能收缩。
+     品牌名让位给导航项。 */
+  .nav__brand {
+    display: none;
+  }
+
+  .nav__links {
+    margin-left: 0;
+    min-width: 0;
+    /* 边缘渐隐，提示还能往右滑 */
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 18px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 18px), transparent 100%);
+  }
+
+  .hero__name {
+    font-size: 1.7rem;
+  }
+
+  .hero__name .latin {
+    display: block;
+    margin-left: 0;
+    font-size: 1.1rem;
+  }
+
+  .section {
+    padding: 2rem 0;
+  }
+
+  .section__head h2,
+  .psection > h2 {
+    font-size: 1.32rem;
+  }
+
+  .stat__num {
+    font-size: 1.28rem;
+  }
+
+  .stat {
+    padding: 0.65rem 0.7rem 0.7rem;
+  }
+}
+
+/* ---------- 打印 ---------- */
+@media print {
+  .nav,
+  .footer,
+  .lightbox,
+  .media-block,
+  .hero-strip,
+  .skip-link {
+    display: none !important;
+  }
+
+  body {
+    font-size: 10.5pt;
+    color: #000;
+    background: #fff;
+  }
+
+  .section {
+    padding: 0.8rem 0;
+    page-break-inside: avoid;
+  }
+
+  /* 交替浅底打印出来就是一片灰底，既费墨又降低可读性 */
+  .section--tint {
+    background: transparent;
+    box-shadow: none;
+    clip-path: none;
+  }
+
+  /* 数字带留着 —— 打印版简历式浏览时它反而是最有用的一块 */
+  .stats {
+    page-break-inside: avoid;
+  }
+
+  .stat__num {
+    color: #000;
+  }
+
+  .section__head h2,
+  .psection > h2 {
+    border-left-color: #000;
+  }
+
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+}
